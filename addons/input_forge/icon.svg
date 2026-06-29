@@ -1,0 +1,21 @@
+<svg width="128" height="128" viewBox="0 0 128 128" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>InputForge icon</title>
+<desc>InputForge logotype with I and F as mechanical keys</desc>
+
+<rect width="128" height="128" rx="22" fill="#1a1a2e"/>
+
+<!-- (I) Input -->
+<rect x="14" y="24" width="28" height="28" rx="4" fill="#6b3d00"/>
+<rect x="14" y="23" width="28" height="27" rx="4" fill="#3d2400"/>
+<rect x="16" y="25" width="24" height="23" rx="3" fill="#2a1800"/>
+<text x="28" y="41" text-anchor="middle" fill="#e8a838" font-family="system-ui,sans-serif" font-weight="700" font-size="17">I</text>
+<text x="50" y="42" fill="#6666aa" font-family="system-ui,sans-serif" font-weight="700" font-size="20">Input</text>
+
+<!-- (F) Forge -->
+<rect x="30" y="72" width="28" height="28" rx="4" fill="#6b3d00"/>
+<rect x="30" y="71" width="28" height="27" rx="4" fill="#3d2400"/>
+<rect x="32" y="73" width="24" height="23" rx="3" fill="#2a1800"/>
+<text x="44" y="89" text-anchor="middle" fill="#e8a838" font-family="system-ui,sans-serif" font-weight="700" font-size="17">F</text>
+<text x="66" y="90" fill="#6666aa" font-family="system-ui,sans-serif" font-weight="700" font-size="20">Forge</text>
+
+</svg>

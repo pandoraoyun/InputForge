@@ -11,8 +11,12 @@ config_version=5
 [application]
 
 config/name="InputForge"
-config/features=PackedStringArray("4.7", "Forward Plus")
+config/features=PackedStringArray("4.7", "C#", "Forward Plus")
 config/icon="res://icon.svg"
+
+[autoload]
+
+EnhancedInputSystem="*uid://c2eg2y5f04pwv"
 
 [display]
 
@@ -22,6 +26,10 @@ window/stretch/aspect="expand"
 [dotnet]
 
 project/assembly_name="InputForge"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/input_forge/plugin.cfg")
 
 [physics]
 

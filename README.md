@@ -29,7 +29,8 @@ InputForge solves this with **input contexts**: a stack of mappings that can be 
 
 1. Copy the `addons/input_forge` folder into your project's `addons/` directory.
 2. In Godot: **Project → Project Settings → Plugins** and enable **InputForge**.
-3. Add `EnhancedInputSystem` as an autoload: **Project → Project Settings → Autoload**, point it to `addons/input_forge/Scripts/Input/EnhancedInputSystem.cs`.
+
+That's it — `EnhancedInputSystem` is registered as an autoload automatically.
 
 ---
 
