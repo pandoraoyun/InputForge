@@ -4,6 +4,15 @@
     <TargetFramework Condition=" '$(GodotTargetPlatform)' == 'android' ">net9.0</TargetFramework>
     <EnableDynamicLoading>true</EnableDynamicLoading>
   </PropertyGroup>
+
+  <!-- Exclude test project from plugin assembly -->
+  <ItemGroup>
+    <Compile Remove="InputForge.Tests\**" />
+    <Content Remove="InputForge.Tests\**" />
+    <EmbeddedResource Remove="InputForge.Tests\**" />
+    <None Remove="InputForge.Tests\**" />
+  </ItemGroup>
+
   <ItemGroup>
     <Content Include="addons\input_forge\Scripts\Input\ContextualInputEvent.cs.uid" />
     <Content Include="addons\input_forge\Scripts\Input\EnhancedInputSystem.cs.uid" />

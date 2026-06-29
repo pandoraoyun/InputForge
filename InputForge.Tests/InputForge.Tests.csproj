@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <GodotProjectDir>./TestProject</GodotProjectDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="2dog" Version="0.1.23-pre"/>
+    <PackageReference Include="2dog.xunit" Version="0.1.23-pre"/>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.*"/>
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.*"/>
+    <PackageReference Include="FluentAssertions" Version="6.*"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>GodotProjectDir</_Parameter1>
+      <_Parameter2>$([System.IO.Path]::GetFullPath('$(GodotProjectDir)', '$(MSBuildProjectDirectory)'))</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <Target Name="RemoveDuplicateGodotAnalyzers" BeforeTargets="CoreCompile">
+    <ItemGroup>
+      <Analyzer Remove="@(Analyzer)" Condition="$([System.String]::Copy('%(Analyzer.Identity)').Contains('Godot.SourceGenerators'))" />
+    </ItemGroup>
+  </Target>
+
+  <ItemGroup>
+    <ProjectReference Include="./TestProject/InputForge.Stub.csproj"/>
+  </ItemGroup>
+
+</Project>

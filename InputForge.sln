@@ -1,6 +1,10 @@
 ﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InputForge", "InputForge.csproj", "{5BFF4C38-A5AF-4580-B708-CD45CB81A56D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InputForge", "InputForge.csproj", "{08122AA2-2A7C-4ACD-9456-3344F47A9C43}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InputForge.Tests", "InputForge.Tests\InputForge.Tests.csproj", "{4DB19BA9-2F14-49D6-B72F-BE15BE47275B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InputForge.Stub", "InputForge.Tests\TestProject\InputForge.Stub.csproj", "{B2585F34-E1E4-4EFB-8D79-FE04E889F70A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -9,11 +13,23 @@ Global
 	ExportRelease|Any CPU = ExportRelease|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{5BFF4C38-A5AF-4580-B708-CD45CB81A56D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5BFF4C38-A5AF-4580-B708-CD45CB81A56D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5BFF4C38-A5AF-4580-B708-CD45CB81A56D}.ExportDebug|Any CPU.ActiveCfg = ExportDebug|Any CPU
-		{5BFF4C38-A5AF-4580-B708-CD45CB81A56D}.ExportDebug|Any CPU.Build.0 = ExportDebug|Any CPU
-		{5BFF4C38-A5AF-4580-B708-CD45CB81A56D}.ExportRelease|Any CPU.ActiveCfg = ExportRelease|Any CPU
-		{5BFF4C38-A5AF-4580-B708-CD45CB81A56D}.ExportRelease|Any CPU.Build.0 = ExportRelease|Any CPU
+		{08122AA2-2A7C-4ACD-9456-3344F47A9C43}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08122AA2-2A7C-4ACD-9456-3344F47A9C43}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08122AA2-2A7C-4ACD-9456-3344F47A9C43}.ExportDebug|Any CPU.ActiveCfg = ExportDebug|Any CPU
+		{08122AA2-2A7C-4ACD-9456-3344F47A9C43}.ExportDebug|Any CPU.Build.0 = ExportDebug|Any CPU
+		{08122AA2-2A7C-4ACD-9456-3344F47A9C43}.ExportRelease|Any CPU.ActiveCfg = ExportRelease|Any CPU
+		{08122AA2-2A7C-4ACD-9456-3344F47A9C43}.ExportRelease|Any CPU.Build.0 = ExportRelease|Any CPU
+		{4DB19BA9-2F14-49D6-B72F-BE15BE47275B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4DB19BA9-2F14-49D6-B72F-BE15BE47275B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4DB19BA9-2F14-49D6-B72F-BE15BE47275B}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4DB19BA9-2F14-49D6-B72F-BE15BE47275B}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
+		{4DB19BA9-2F14-49D6-B72F-BE15BE47275B}.ExportRelease|Any CPU.ActiveCfg = Debug|Any CPU
+		{4DB19BA9-2F14-49D6-B72F-BE15BE47275B}.ExportRelease|Any CPU.Build.0 = Debug|Any CPU
+		{B2585F34-E1E4-4EFB-8D79-FE04E889F70A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2585F34-E1E4-4EFB-8D79-FE04E889F70A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2585F34-E1E4-4EFB-8D79-FE04E889F70A}.ExportDebug|Any CPU.ActiveCfg = ExportDebug|Any CPU
+		{B2585F34-E1E4-4EFB-8D79-FE04E889F70A}.ExportDebug|Any CPU.Build.0 = ExportDebug|Any CPU
+		{B2585F34-E1E4-4EFB-8D79-FE04E889F70A}.ExportRelease|Any CPU.ActiveCfg = ExportRelease|Any CPU
+		{B2585F34-E1E4-4EFB-8D79-FE04E889F70A}.ExportRelease|Any CPU.Build.0 = ExportRelease|Any CPU
 	EndGlobalSection
 EndGlobal

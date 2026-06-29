@@ -1,0 +1,5 @@
+<Project>
+  <PropertyGroup>
+    <GodotSdkVersion Condition="'$(GodotSdkVersion)' == ''">4.7.0</GodotSdkVersion>
+  </PropertyGroup>
+</Project>

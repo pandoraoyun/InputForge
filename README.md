@@ -27,10 +27,29 @@ InputForge solves this with **input contexts**: a stack of mappings that can be 
 
 ## Installation
 
-1. Copy the `addons/input_forge` folder into your project's `addons/` directory.
-2. In Godot: **Project → Project Settings → Plugins** and enable **InputForge**.
+### Option A — Godot Asset Library
 
-That's it — `EnhancedInputSystem` is registered as an autoload automatically.
+Search for **InputForge** in the Godot editor's AssetLib tab and click Install.
+
+### Option B — degit (recommended for version-controlled projects)
+
+If you have [Node.js](https://nodejs.org) installed, use [degit](https://github.com/Rich-Harris/degit) to pull only the plugin folder — no git history, no extra files:
+
+```bash
+npx degit pandoraoyun/InputForge/addons/input_forge addons/input_forge
+```
+
+Run the same command again to update to the latest version.
+
+### Option C — Manual
+
+Copy the `addons/input_forge` folder into your project's `addons/` directory.
+
+---
+
+After installation, enable the plugin in Godot: **Project → Project Settings → Plugins → InputForge**.
+
+`EnhancedInputSystem` is registered as an autoload automatically.
 
 ---
 
