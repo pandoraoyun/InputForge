@@ -16,6 +16,20 @@ public partial class InputMappingContext : Resource
     [Export] public string ContextName { get; set; } = "New Context";
     [Export] public Godot.Collections.Array<InputMapping> Mappings { get; set; } = new();
 
+    /// <summary>Emitted when <see cref="EnhancedInputSystem"/> pushes this context onto the stack.</summary>
+    [Signal] public delegate void PushedEventHandler();
+
+    /// <summary>Emitted when <see cref="EnhancedInputSystem"/> removes this context from the stack.</summary>
+    [Signal] public delegate void PoppedEventHandler();
+
+    /// <summary>
+    /// Emitted when this context's position in the active stack changes — e.g. another
+    /// context was pushed above or popped from above it, changing whether this context
+    /// is currently the highest-priority (topmost) one. Passes whether this context is
+    /// now the topmost active context.
+    /// </summary>
+    [Signal] public delegate void PriorityChangedEventHandler(bool isTopmost);
+
     // Case-insensitive dictionary keyed by action name.
     private readonly Dictionary<string, List<Delegate>> _actionEvents =
         new(StringComparer.OrdinalIgnoreCase);
@@ -64,6 +78,18 @@ public partial class InputMappingContext : Resource
             }
         }
     }
+
+    /// <summary>Called by <see cref="EnhancedInputSystem"/> when this context is pushed onto the stack.</summary>
+    internal void NotifyPushed() => EmitSignal(SignalName.Pushed);
+
+    /// <summary>Called by <see cref="EnhancedInputSystem"/> when this context is removed from the stack.</summary>
+    internal void NotifyPopped() => EmitSignal(SignalName.Popped);
+
+    /// <summary>
+    /// Called by <see cref="EnhancedInputSystem"/> whenever the active stack changes in a way
+    /// that may affect whether this context is the topmost one.
+    /// </summary>
+    internal void NotifyPriorityChanged(bool isTopmost) => EmitSignal(SignalName.PriorityChanged, isTopmost);
 
     /// <summary>
     /// Two contexts are equal if they share the same ContextName (case-insensitive).

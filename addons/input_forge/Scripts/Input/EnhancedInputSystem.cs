@@ -1,5 +1,6 @@
 using Godot;
 using System.Collections.Generic;
+using InputForge.Enum;
 
 namespace InputForge;
 
@@ -12,6 +13,15 @@ public partial class EnhancedInputSystem : Node
 {
     private static EnhancedInputSystem _instance;
     public static EnhancedInputSystem GetInstance() => _instance;
+
+    /// <summary>Emitted whenever the topmost (highest-priority) active context changes — including becoming null.</summary>
+    [Signal] public delegate void ActiveContextChangedEventHandler(InputMappingContext newTop);
+
+    /// <summary>Emitted right after a context is pushed onto the active stack.</summary>
+    [Signal] public delegate void ContextPushedEventHandler(InputMappingContext context);
+
+    /// <summary>Emitted right after a context is fully removed from the active stack.</summary>
+    [Signal] public delegate void ContextPoppedEventHandler(InputMappingContext context);
 
     public override void _Ready() => _instance = this;
 
@@ -27,11 +37,74 @@ public partial class EnhancedInputSystem : Node
     /// </summary>
     public bool PreventFallbackContext { get; set; } = false;
 
-    /// <summary>Pushes a context onto the active stack. Last added context has highest priority.</summary>
-    public void AddContext(InputMappingContext context) => _activeContexts.Add(context);
+    /// <summary>
+    /// Controls what happens when <see cref="AddContext"/> is called with a context
+    /// that is already present in the active stack. Defaults to <see cref="DuplicateContextBehavior.Replace"/>,
+    /// which moves the context to the top (highest priority) instead of creating a duplicate entry.
+    /// </summary>
+    public DuplicateContextBehavior DuplicateContextBehavior { get; set; } = DuplicateContextBehavior.Replace;
+
+    /// <summary>Returns the highest-priority (last added) active context, or null if the stack is empty.</summary>
+    public InputMappingContext GetCurrentContext()
+        => _activeContexts.Count > 0 ? _activeContexts[^1] : null;
+
+    /// <summary>
+    /// Pushes a context onto the active stack. Last added context has highest priority.
+    /// If the context is already in the stack, behavior is controlled by <see cref="DuplicateContextBehavior"/>:
+    /// Ignore silently no-ops, Replace (default) moves it to the top.
+    /// </summary>
+    public void AddContext(InputMappingContext context)
+    {
+        if (context == null) return;
+
+        bool alreadyActive = _activeContexts.Contains(context);
+
+        if (alreadyActive)
+        {
+            if (DuplicateContextBehavior == DuplicateContextBehavior.Ignore) return;
+
+            // Replace: drop the existing entry first so re-adding brings it to the top
+            // without leaving a stale duplicate lower in the stack.
+            _activeContexts.Remove(context);
+        }
+
+        var previousTop = GetCurrentContext();
+
+        _activeContexts.Add(context);
+        context.NotifyPushed();
+        EmitSignal(SignalName.ContextPushed, context);
+
+        NotifyPriorityChangesAfterStackMutation(previousTop);
+    }
 
     /// <summary>Removes a context from the active stack.</summary>
-    public void RemoveContext(InputMappingContext context) => _activeContexts.Remove(context);
+    public void RemoveContext(InputMappingContext context)
+    {
+        if (context == null) return;
+        if (!_activeContexts.Remove(context)) return;
+
+        var previousTop = context; // the removed context was, at minimum, in the stack
+        context.NotifyPopped();
+        EmitSignal(SignalName.ContextPopped, context);
+
+        NotifyPriorityChangesAfterStackMutation(previousTop);
+    }
+
+    /// <summary>
+    /// After a push/pop, compares the new topmost context against what it was before
+    /// the mutation. If it changed, emits ActiveContextChanged and notifies both the
+    /// old and new topmost contexts via PriorityChanged.
+    /// </summary>
+    private void NotifyPriorityChangesAfterStackMutation(InputMappingContext previousTop)
+    {
+        var newTop = GetCurrentContext();
+        if (previousTop == newTop) return;
+
+        if (previousTop != null) previousTop.NotifyPriorityChanged(isTopmost: false);
+        if (newTop != null) newTop.NotifyPriorityChanged(isTopmost: true);
+
+        EmitSignal(SignalName.ActiveContextChanged, newTop);
+    }
 
     public override void _Input(InputEvent @event)
     {

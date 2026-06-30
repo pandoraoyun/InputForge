@@ -1,0 +1,17 @@
+namespace InputForge.Enum;
+
+/// <summary>
+/// Controls what happens when <see cref="EnhancedInputSystem.AddContext"/> is called
+/// with a context that is already present in the active stack.
+/// </summary>
+public enum DuplicateContextBehavior
+{
+    /// <summary>Silently ignore the push — the context's existing position in the stack is unchanged.</summary>
+    Ignore,
+
+    /// <summary>
+    /// Remove the context's existing entry from the stack first, then push it again —
+    /// effectively bringing it to the top (highest priority) as if it were newly added.
+    /// </summary>
+    Replace
+}
