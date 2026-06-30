@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="InputMappingContext" format=3 uid="uid://djep0qb3m4fim"]
+
+[ext_resource type="Script" uid="uid://c0wrqgxv3ycod" path="res://addons/input_forge/Scripts/Input/InputMapping.cs" id="1_d034o"]
+[ext_resource type="Script" uid="uid://m681nudrytxa" path="res://addons/input_forge/Scripts/Input/InputMappingContext.cs" id="2_g82a1"]
+[ext_resource type="Script" uid="uid://dfg33dssg5vfq" path="res://addons/input_forge/Scripts/Input/Modifiers/InputModifier.cs" id="2_od2ny"]
+[ext_resource type="Script" uid="uid://bt12nciw6s71k" path="res://addons/input_forge/Scripts/Input/Mappings/InputKey.cs" id="2_x16y6"]
+[ext_resource type="Script" uid="uid://drwm7t1mxdhi7" path="res://addons/input_forge/Scripts/Input/Triggers/InputTrigger.cs" id="3_k4lch"]
+[ext_resource type="Resource" uid="uid://bbf3k7h4wv22x" path="res://addons/InputForgeDemo/Resources/MoveAction.tres" id="4_k4lch"]
+
+[sub_resource type="Resource" id="Resource_x16y6"]
+script = ExtResource("2_x16y6")
+InputType = 1
+AxisDimension = 1
+metadata/_custom_type_script = "uid://bt12nciw6s71k"
+
+[sub_resource type="Resource" id="Resource_cf3r8"]
+script = ExtResource("1_d034o")
+TargetAction = ExtResource("4_k4lch")
+InputSource = SubResource("Resource_x16y6")
+metadata/_custom_type_script = "uid://c0wrqgxv3ycod"
+
+[sub_resource type="Resource" id="Resource_l5yht"]
+script = ExtResource("2_x16y6")
+InputType = 3
+AxisDimension = 1
+Sensitivity = 0.6
+metadata/_custom_type_script = "uid://bt12nciw6s71k"
+
+[sub_resource type="Resource" id="Resource_pc0i7"]
+script = ExtResource("1_d034o")
+TargetAction = ExtResource("4_k4lch")
+InputSource = SubResource("Resource_l5yht")
+metadata/_custom_type_script = "uid://c0wrqgxv3ycod"
+
+[resource]
+script = ExtResource("2_g82a1")
+ContextName = "DrivingContext"
+Mappings = Array[ExtResource("1_d034o")]([SubResource("Resource_cf3r8"), SubResource("Resource_pc0i7")])
+metadata/_custom_type_script = "uid://m681nudrytxa"

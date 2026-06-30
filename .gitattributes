@@ -1,9 +1,11 @@
 # Normalize line endings for all files that Git considers text files.
 * text=auto eol=lf
 
-# Only include the InputForge addon folder when downloading from the Asset Library.
-# Other addons/dependencies the user may have installed locally are excluded —
-# users should install those themselves.
-/**                     export-ignore
-/addons/input_forge     !export-ignore
-/addons/input_forge/**  !export-ignore
+# Only include the InputForge addon folder (plus the demo) when downloading from
+# the Asset Library. Other addons/dependencies the user may have installed locally
+# are excluded — users should install those themselves.
+/**                          export-ignore
+/addons/input_forge          !export-ignore
+/addons/input_forge/**       !export-ignore
+/addons/InputForgeDemo       !export-ignore
+/addons/InputForgeDemo/**    !export-ignore

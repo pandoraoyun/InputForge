@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="InputAction" format=3 uid="uid://bki4y8pf20n15"]
+
+[ext_resource type="Script" uid="uid://8fm83xrp7hg2" path="res://addons/input_forge/Scripts/Input/InputAction.cs" id="1_0lrof"]
+
+[resource]
+resource_name = "New Action"
+script = ExtResource("1_0lrof")
+ActionName = "LeaveCarAction"
+metadata/_custom_type_script = "uid://8fm83xrp7hg2"

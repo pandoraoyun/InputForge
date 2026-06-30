@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="InputMappingContext" format=3 uid="uid://c6o87qixmu5qb"]
+
+[ext_resource type="Script" uid="uid://c0wrqgxv3ycod" path="res://addons/input_forge/Scripts/Input/InputMapping.cs" id="1_w43qs"]
+[ext_resource type="Script" uid="uid://m681nudrytxa" path="res://addons/input_forge/Scripts/Input/InputMappingContext.cs" id="2_7nkiq"]
+[ext_resource type="Script" uid="uid://bt12nciw6s71k" path="res://addons/input_forge/Scripts/Input/Mappings/InputKey.cs" id="2_x8oh0"]
+[ext_resource type="Script" uid="uid://dfg33dssg5vfq" path="res://addons/input_forge/Scripts/Input/Modifiers/InputModifier.cs" id="3_hmlw6"]
+[ext_resource type="Script" uid="uid://drwm7t1mxdhi7" path="res://addons/input_forge/Scripts/Input/Triggers/InputTrigger.cs" id="4_rgipe"]
+[ext_resource type="Resource" uid="uid://b5ur0tlsv37sy" path="res://addons/InputForgeDemo/Resources/CloseMenuAction.tres" id="5_nywwx"]
+
+[sub_resource type="Resource" id="Resource_4ogho"]
+script = ExtResource("2_x8oh0")
+KeyboardKey = 32
+metadata/_custom_type_script = "uid://bt12nciw6s71k"
+
+[sub_resource type="Resource" id="Resource_8rxmc"]
+script = ExtResource("1_w43qs")
+TargetAction = ExtResource("5_nywwx")
+InputSource = SubResource("Resource_4ogho")
+metadata/_custom_type_script = "uid://c0wrqgxv3ycod"
+
+[resource]
+script = ExtResource("2_7nkiq")
+ContextName = "MenuContext"
+Mappings = Array[ExtResource("1_w43qs")]([SubResource("Resource_8rxmc")])
+metadata/_custom_type_script = "uid://m681nudrytxa"

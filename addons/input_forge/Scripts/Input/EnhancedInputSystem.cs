@@ -25,6 +25,14 @@ public partial class EnhancedInputSystem : Node
 
     public override void _Ready() => _instance = this;
 
+    public override void _ExitTree()
+    {
+        // Clear the singleton when this instance leaves the tree so a freed node
+        // is never left dangling in _instance. Guarded in case another instance
+        // has already taken over (e.g. during a reload).
+        if (_instance == this) _instance = null;
+    }
+
     private readonly List<InputMappingContext> _activeContexts = new();
 
     /// <summary>
@@ -49,6 +57,15 @@ public partial class EnhancedInputSystem : Node
         => _activeContexts.Count > 0 ? _activeContexts[^1] : null;
 
     /// <summary>
+    /// Internal hook so Resource-based types (which cannot call Node.GetViewport()
+    /// themselves) can reach the live Viewport through the singleton instance.
+    /// Used by InputKey's Pointer mode to query the current mouse position via
+    /// Viewport.GetMousePosition(). Not part of the public API — only InputForge's
+    /// own Resource types should depend on this.
+    /// </summary>
+    internal Viewport GetInputViewport() => GetViewport();
+
+    /// <summary>
     /// Pushes a context onto the active stack. Last added context has highest priority.
     /// If the context is already in the stack, behavior is controlled by <see cref="DuplicateContextBehavior"/>:
     /// Ignore silently no-ops, Replace (default) moves it to the top.
@@ -71,11 +88,17 @@ public partial class EnhancedInputSystem : Node
             if (DuplicateContextBehavior == DuplicateContextBehavior.Ignore) return;
 
             // Replace: drop the existing entry first so re-adding brings it to the top
-            // without leaving a stale duplicate lower in the stack.
+            // without leaving a stale duplicate lower in the stack. Unbind first so the
+            // BindTriggers below doesn't double-subscribe this context's triggers.
+            context.UnbindTriggers();
             _activeContexts.Remove(context);
         }
 
         _activeContexts.Add(context);
+        // Bind BEFORE NotifyPriorityChangesAfterStackMutation so this context's triggers
+        // are already subscribed when the push's own ActiveContextChanged fires — they
+        // then reset to a clean baseline as part of becoming active.
+        context.BindTriggers();
         context.NotifyPushed();
         EmitSignal(SignalName.ContextPushed, context);
 
@@ -93,6 +116,9 @@ public partial class EnhancedInputSystem : Node
 
         if (!_activeContexts.Remove(context)) return;
 
+        // Unbind the leaving context's triggers; the remaining (now re-exposed) contexts
+        // are still bound and will reset via the ActiveContextChanged emitted below.
+        context.UnbindTriggers();
         context.NotifyPopped();
         EmitSignal(SignalName.ContextPopped, context);
 

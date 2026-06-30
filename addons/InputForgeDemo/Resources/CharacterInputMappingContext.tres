@@ -1,0 +1,49 @@
+[gd_resource type="Resource" script_class="InputMappingContext" format=3 uid="uid://dqhtx6c50fjf8"]
+
+[ext_resource type="Script" uid="uid://c0wrqgxv3ycod" path="res://addons/input_forge/Scripts/Input/InputMapping.cs" id="1_jcb53"]
+[ext_resource type="Script" uid="uid://m681nudrytxa" path="res://addons/input_forge/Scripts/Input/InputMappingContext.cs" id="2_eby4w"]
+[ext_resource type="Script" uid="uid://bt12nciw6s71k" path="res://addons/input_forge/Scripts/Input/Mappings/InputKey.cs" id="2_mfphp"]
+[ext_resource type="Script" uid="uid://dfg33dssg5vfq" path="res://addons/input_forge/Scripts/Input/Modifiers/InputModifier.cs" id="2_pf7q6"]
+[ext_resource type="Script" uid="uid://drwm7t1mxdhi7" path="res://addons/input_forge/Scripts/Input/Triggers/InputTrigger.cs" id="3_ku7b6"]
+[ext_resource type="Resource" uid="uid://boqsqowdfnlms" path="res://addons/InputForgeDemo/Resources/SwithDriveMode.tres" id="5_k4p33"]
+[ext_resource type="Resource" uid="uid://bbf3k7h4wv22x" path="res://addons/InputForgeDemo/Resources/MoveAction.tres" id="6_k4p33"]
+[ext_resource type="Resource" uid="uid://bby2ogwc2he3c" path="res://addons/InputForgeDemo/Resources/MenuOpenAction.tres" id="7_18m2e"]
+
+[sub_resource type="Resource" id="Resource_mfphp"]
+script = ExtResource("2_mfphp")
+KeyboardKey = 32
+metadata/_custom_type_script = "uid://bt12nciw6s71k"
+
+[sub_resource type="Resource" id="Resource_v1o0o"]
+script = ExtResource("1_jcb53")
+TargetAction = ExtResource("5_k4p33")
+InputSource = SubResource("Resource_mfphp")
+metadata/_custom_type_script = "uid://c0wrqgxv3ycod"
+
+[sub_resource type="Resource" id="Resource_18m2e"]
+script = ExtResource("2_mfphp")
+InputType = 1
+metadata/_custom_type_script = "uid://bt12nciw6s71k"
+
+[sub_resource type="Resource" id="Resource_gs1x5"]
+script = ExtResource("1_jcb53")
+TargetAction = ExtResource("6_k4p33")
+InputSource = SubResource("Resource_18m2e")
+metadata/_custom_type_script = "uid://c0wrqgxv3ycod"
+
+[sub_resource type="Resource" id="Resource_ccqei"]
+script = ExtResource("2_mfphp")
+KeyboardKey = 4194305
+metadata/_custom_type_script = "uid://bt12nciw6s71k"
+
+[sub_resource type="Resource" id="Resource_rm2cw"]
+script = ExtResource("1_jcb53")
+TargetAction = ExtResource("7_18m2e")
+InputSource = SubResource("Resource_ccqei")
+metadata/_custom_type_script = "uid://c0wrqgxv3ycod"
+
+[resource]
+script = ExtResource("2_eby4w")
+ContextName = "CharacterInputMappingContext"
+Mappings = Array[ExtResource("1_jcb53")]([SubResource("Resource_v1o0o"), SubResource("Resource_gs1x5"), SubResource("Resource_rm2cw")])
+metadata/_custom_type_script = "uid://m681nudrytxa"

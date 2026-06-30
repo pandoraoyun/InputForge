@@ -32,3 +32,21 @@ InputForge.Tests/
 Once 2dog ships Godot 4.7 support, delete `TestProject/` entirely and update `InputForge.Tests.csproj` to reference `../InputForge.csproj` directly. The test code itself requires no changes.
 
 Track progress: https://github.com/outfox/2dog
+
+## Coverage
+
+The addon assembly sits at **~84% line coverage** (Coverlet, `InputForge` assembly only). Tests run against a real headless Godot runtime via 2dog, so the numbers reflect actual engine behavior rather than mocks.
+
+**Reading the number honestly — Godot inflates raw coverage.** Every `[GlobalClass]`/`Resource`/`Node` is `partial`, so Godot's source generators emit a large amount of marshalling glue per class (`InvokeGodotClassMethod`, `Get`/`SetGodotClassPropertyValue`, serialization, `*_ScriptMethods.generated.cs`, etc.). An unfiltered coverage run counts all of that auto-generated, untestable code and drags the reported figure down into the ~30–40% range even when the hand-written logic is well covered. The ~84% figure is measured **after excluding** generated sources and the editor-only `InputForgePlugin`, via [`coverage.runsettings`](coverage.runsettings) (`ExcludeByFile`/`ExcludeByAttribute`) plus `[ExcludeFromCodeCoverage]` on the plugin. If you run a report with a bare `**/coverage.cobertura.xml` glob and no filtering, expect a much lower headline number for exactly this reason — it's an artifact of the generated code, not the test suite.
+
+**Environment-bound paths.** `InputType.Digital`/`Analog` read live OS state through `Godot.Input.IsKeyPressed`/`GetJoyAxis`, which synthetic `InputEvent` objects don't drive in a headless run. These are covered at the routing level (correct event matched, value shape) rather than by asserting a produced magnitude.
+
+Reproduce locally:
+
+```bash
+dotnet test --settings coverage.runsettings --collect:"XPlat Code Coverage"
+reportgenerator -reports:"TestResults/*/coverage.cobertura.xml" -targetdir:"coveragereport" "-reporttypes:Html;TextSummary"
+```
+
+The coverage tooling setup, the generated-code filtering in `coverage.runsettings`, and the test suite that produced these figures were prepared with the assistance of **Claude Opus 4.8** (Anthropic).
+

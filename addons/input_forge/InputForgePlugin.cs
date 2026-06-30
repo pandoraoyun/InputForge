@@ -1,7 +1,9 @@
 #if TOOLS
 using Godot;
+using System.Diagnostics.CodeAnalysis;
 
 [Tool]
+[ExcludeFromCodeCoverage] // Editor-only boilerplate (type registration + autoload); no testable logic.
 public partial class InputForgePlugin : EditorPlugin
 {
     private const string AutoloadName = "EnhancedInputSystem";
@@ -44,6 +46,7 @@ public partial class InputForgePlugin : EditorPlugin
         AddCustomType("NormalizeModifier",   "Resource", Load<Script>("res://addons/input_forge/Scripts/Input/Modifiers/NormalizeModifier.cs"), iconMod);
         AddCustomType("ScaleModifier",       "Resource", Load<Script>("res://addons/input_forge/Scripts/Input/Modifiers/ScaleModifier.cs"),    iconMod);
         AddCustomType("SwizzleModifier",     "Resource", Load<Script>("res://addons/input_forge/Scripts/Input/Modifiers/SwizzleModifier.cs"),  iconMod);
+        AddCustomType("PointerSpaceModifier","Resource", Load<Script>("res://addons/input_forge/Scripts/Input/Modifiers/PointerSpaceModifier.cs"), iconMod);
 
         // Base trigger
         AddCustomType("InputTrigger",        "Resource", Load<Script>("res://addons/input_forge/Scripts/Input/Triggers/InputTrigger.cs"),        iconTrig);
@@ -65,6 +68,7 @@ public partial class InputForgePlugin : EditorPlugin
         RemoveCustomType("NormalizeModifier");
         RemoveCustomType("ScaleModifier");
         RemoveCustomType("SwizzleModifier");
+        RemoveCustomType("PointerSpaceModifier");
         RemoveCustomType("InputTrigger");
         RemoveCustomType("TriggerOnKeyDown");
         RemoveCustomType("TriggerOnKeyUp");

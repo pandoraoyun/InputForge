@@ -15,6 +15,15 @@ public enum InputType
     /// <summary>Analog joystick axis. Produces Vector3(x, y, 0).</summary>
     Analog,
 
-    /// <summary>Mouse or gyro motion delta. Produces Vector3(x, y, 0).</summary>
-    Delta
+    /// <summary>Mouse or gyro motion delta — frame-to-frame relative movement. Produces Vector3(x, y, 0).</summary>
+    Delta,
+
+    /// <summary>
+    /// Absolute mouse cursor position in viewport space. Conceptually distinct from Delta —
+    /// it is not derived from the motion event's relative value at all. A mouse motion event
+    /// is still required to trigger the read (this stays event-driven, not polled every frame),
+    /// but the value itself comes directly from <see cref="Godot.Input.GetMousePosition"/>,
+    /// ignoring the event's own relative/position data entirely. Produces Vector3(x, y, 0).
+    /// </summary>
+    Pointer
 }

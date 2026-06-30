@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat code coverage">
+        <Configuration>
+          <!-- Only measure the addon assembly; exclude the test/stub assemblies. -->
+          <Include>[InputForge]*</Include>
+          <Exclude>[InputForge.Tests]*,[InputForge.Stub]*</Exclude>
+
+          <!-- Exclude Godot's auto-generated marshalling/source-gen code and the
+               editor-only plugin from coverage — they have no testable logic and
+               otherwise massively inflate the line count. -->
+          <ExcludeByAttribute>System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute,Godot.SourceGenerators.GeneratedCodeAttribute,System.CodeDom.Compiler.GeneratedCodeAttribute,System.Runtime.CompilerServices.CompilerGeneratedAttribute</ExcludeByAttribute>
+          <ExcludeByFile>**/*.generated.cs,**/.godot/**/*.cs</ExcludeByFile>
+          <SkipAutoProps>true</SkipAutoProps>
+          <UseSourceLink>false</UseSourceLink>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
