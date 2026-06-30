@@ -1,0 +1,366 @@
+using FluentAssertions;
+using Godot;
+using InputForge.Enum;
+using InputForge.Mappings;
+using Engine = Godot.Engine;
+
+namespace InputForge.Tests.System;
+
+/// <summary>
+/// End-to-end tests covering the full pipeline: EnhancedInputSystem dispatch,
+/// context push/pop, action triggering via real Godot InputEvent objects,
+/// and the BlocksLowerContexts fallback behavior.
+///
+/// Each test creates its own EnhancedInputSystem node, adds it to the live
+/// SceneTree root so _Ready() runs and GetInstance() resolves, and removes
+/// it again in a finally block to keep tests isolated from each other.
+/// </summary>
+[Collection("InputForge")]
+public class InputSystemTests
+{
+    private readonly SceneTree _tree;
+
+    public InputSystemTests(InputForgeTestFixture fixture)
+    {
+        _tree = fixture.Tree
+            ?? throw new InvalidOperationException(
+                "InputForgeTestFixture.Tree is null — the Godot engine failed to start. " +
+                "Check for a prior native binding error (e.g. ClassDB_get_method_with_compatibility) " +
+                "that may have aborted engine startup before the SceneTree was created.");
+    }
+
+    private EnhancedInputSystem CreateSystem()
+    {
+        var system = new EnhancedInputSystem();
+        _tree.Root.AddChild(system);
+        return system;
+    }
+
+    private static InputAction Action(string name) => new() { ActionName = name };
+
+    private static InputKey BooleanKey(Key key) => new()
+    {
+        InputType = InputType.Boolean,
+        DeviceType = InputDeviceType.Keyboard,
+        KeyboardKey = key
+    };
+
+    private static InputMappingContext Context(string name, params InputMapping[] mappings)
+    {
+        var ctx = new InputMappingContext { ContextName = name };
+        foreach (var m in mappings) ctx.Mappings.Add(m);
+        return ctx;
+    }
+
+    private static InputMapping Mapping(InputAction action, InputKey key) => new()
+    {
+        TargetAction = action,
+        InputSource = key
+    };
+
+    private static InputEventKey KeyEvent(Key key, bool pressed) => new()
+    {
+        Keycode = key,
+        Pressed = pressed,
+        Echo = false
+    };
+
+    [Fact]
+    public void AddContext_SetsCurrentContext()
+    {
+        var system = CreateSystem();
+        try
+        {
+            var ctx = Context("Gameplay");
+
+            system.AddContext(ctx);
+
+            system.GetCurrentContext().Should().Be(ctx);
+        }
+        finally
+        {
+            system.QueueFree();
+        }
+    }
+
+    [Fact]
+    public void RemoveContext_ClearsCurrentContext_WhenStackIsEmpty()
+    {
+        var system = CreateSystem();
+        try
+        {
+            var ctx = Context("Gameplay");
+            system.AddContext(ctx);
+
+            system.RemoveContext(ctx);
+
+            system.GetCurrentContext().Should().BeNull();
+        }
+        finally
+        {
+            system.QueueFree();
+        }
+    }
+
+    [Fact]
+    public void RemoveContext_RestoresPreviousContext_WhenStackIsNotEmpty()
+    {
+        var system = CreateSystem();
+        try
+        {
+            var gameplay = Context("Gameplay");
+            var menu = Context("Menu");
+            system.AddContext(gameplay);
+            system.AddContext(menu);
+
+            system.RemoveContext(menu);
+
+            system.GetCurrentContext().Should().Be(gameplay);
+        }
+        finally
+        {
+            system.QueueFree();
+        }
+    }
+
+    [Fact]
+    public void Input_TriggersBoundCallback_WhenKeyMatchesMapping()
+    {
+        var system = CreateSystem();
+        try
+        {
+            var jump = Action("Jump");
+            var ctx = Context("Gameplay", Mapping(jump, BooleanKey(Key.Space)));
+            bool received = false;
+            bool? receivedValue = null;
+            ctx.BindAction(jump, (bool pressed) =>
+            {
+                received = true;
+                receivedValue = pressed;
+            });
+
+            system.AddContext(ctx);
+            system._Input(KeyEvent(Key.Space, pressed: true));
+
+            received.Should().BeTrue();
+            receivedValue.Should().BeTrue();
+        }
+        finally
+        {
+            system.QueueFree();
+        }
+    }
+
+    [Fact]
+    public void Input_DoesNotTrigger_WhenKeyDoesNotMatchMapping()
+    {
+        var system = CreateSystem();
+        try
+        {
+            var jump = Action("Jump");
+            var ctx = Context("Gameplay", Mapping(jump, BooleanKey(Key.Space)));
+            bool received = false;
+            ctx.BindAction(jump, (bool _) => received = true);
+
+            system.AddContext(ctx);
+            system._Input(KeyEvent(Key.Enter, pressed: true));
+
+            received.Should().BeFalse();
+        }
+        finally
+        {
+            system.QueueFree();
+        }
+    }
+
+    [Fact]
+    public void Input_HigherPriorityContext_TakesPrecedenceOverLowerOne()
+    {
+        var system = CreateSystem();
+        try
+        {
+            var confirm = Action("Confirm");
+            var jump = Action("Jump");
+
+            // Both contexts map the same physical key (Space) to different actions.
+            var gameplay = Context("Gameplay", Mapping(jump, BooleanKey(Key.Space)));
+            var menu = Context("Menu", Mapping(confirm, BooleanKey(Key.Space)));
+
+            bool jumpFired = false;
+            bool confirmFired = false;
+            gameplay.BindAction(jump, (bool _) => jumpFired = true);
+            menu.BindAction(confirm, (bool _) => confirmFired = true);
+
+            system.AddContext(gameplay);
+            system.AddContext(menu); // higher priority, added last
+
+            system._Input(KeyEvent(Key.Space, pressed: true));
+
+            confirmFired.Should().BeTrue("the higher-priority Menu context owns Space");
+            jumpFired.Should().BeFalse("Gameplay should not see the event once Menu consumed it");
+        }
+        finally
+        {
+            system.QueueFree();
+        }
+    }
+
+    [Fact]
+    public void Input_FallsThroughToLowerContext_WhenHigherContextHasNoMatchingMapping()
+    {
+        var system = CreateSystem();
+        try
+        {
+            var pause = Action("Pause");
+            var accelerate = Action("Accelerate");
+
+            // VehicleContext only knows about W; it does not map Escape.
+            var gameplay = Context("Gameplay", Mapping(pause, BooleanKey(Key.Escape)));
+            var vehicle = Context("Vehicle", Mapping(accelerate, BooleanKey(Key.W)));
+
+            bool pauseFired = false;
+            gameplay.BindAction(pause, (bool _) => pauseFired = true);
+
+            system.AddContext(gameplay);
+            system.AddContext(vehicle); // higher priority, but doesn't map Escape
+
+            system._Input(KeyEvent(Key.Escape, pressed: true));
+
+            pauseFired.Should().BeTrue("Vehicle has no mapping for Escape, so it should fall through to Gameplay");
+        }
+        finally
+        {
+            system.QueueFree();
+        }
+    }
+
+    [Fact]
+    public void Input_BlocksLowerContexts_PreventsFallthrough_EvenWithoutMatchingMapping()
+    {
+        var system = CreateSystem();
+        try
+        {
+            var move = Action("Move");
+
+            // GameplayContext maps WASD digital movement.
+            var gameplay = Context("Gameplay", Mapping(move, new InputKey
+            {
+                InputType = InputType.Digital,
+                AxisDimension = AxisDimension.Axis2D,
+                PositiveKey = Key.D,
+                NegativeKey = Key.A,
+                PositiveKeyY = Key.S,
+                NegativeKeyY = Key.W
+            }));
+
+            // FollowContext has no mapping at all for the W key, but blocks fallthrough.
+            var follow = Context("Follow");
+            follow.BlocksLowerContexts = true;
+
+            bool moveFired = false;
+            gameplay.BindAction(move, (Vector2 _) => moveFired = true);
+
+            system.AddContext(gameplay);
+            system.AddContext(follow);
+
+            system._Input(KeyEvent(Key.W, pressed: true));
+
+            moveFired.Should().BeFalse(
+                "Follow context blocks lower contexts even though it has no matching mapping for W");
+        }
+        finally
+        {
+            system.QueueFree();
+        }
+    }
+
+    [Fact]
+    public void Input_DoesNotBlockLowerContexts_WhenFlagIsFalse_AndNoMappingMatches()
+    {
+        var system = CreateSystem();
+        try
+        {
+            var move = Action("Move");
+
+            var gameplay = Context("Gameplay", Mapping(move, new InputKey
+            {
+                InputType = InputType.Digital,
+                AxisDimension = AxisDimension.Axis2D,
+                PositiveKey = Key.D,
+                NegativeKey = Key.A,
+                PositiveKeyY = Key.S,
+                NegativeKeyY = Key.W
+            }));
+
+            // Same as above, but BlocksLowerContexts defaults to false.
+            var follow = Context("Follow");
+
+            bool moveFired = false;
+            gameplay.BindAction(move, (Vector2 _) => moveFired = true);
+
+            system.AddContext(gameplay);
+            system.AddContext(follow);
+
+            system._Input(KeyEvent(Key.W, pressed: true));
+
+            moveFired.Should().BeTrue(
+                "Follow context does not block, so the event should fall through to Gameplay's Move mapping");
+        }
+        finally
+        {
+            system.QueueFree();
+        }
+    }
+
+    [Fact]
+    public void RemoveContext_StopsDeliveringEventsToThatContext()
+    {
+        var system = CreateSystem();
+        try
+        {
+            var jump = Action("Jump");
+            var ctx = Context("Gameplay", Mapping(jump, BooleanKey(Key.Space)));
+            int callCount = 0;
+            ctx.BindAction(jump, (bool _) => callCount++);
+
+            system.AddContext(ctx);
+            system._Input(KeyEvent(Key.Space, pressed: true));
+
+            system.RemoveContext(ctx);
+            system._Input(KeyEvent(Key.Space, pressed: true));
+
+            callCount.Should().Be(1, "the second event should not reach a removed context");
+        }
+        finally
+        {
+            system.QueueFree();
+        }
+    }
+
+    [Fact]
+    public void ContextChanged_Signal_FiresOnAddAndRemove()
+    {
+        var system = CreateSystem();
+        try
+        {
+            var ctx = Context("Gameplay");
+            var seen = new List<InputMappingContext>();
+
+            system.Connect(
+                EnhancedInputSystem.SignalName.ContextChanged,
+                Callable.From((InputMappingContext c) => seen.Add(c))
+            );
+
+            system.AddContext(ctx);
+            system.RemoveContext(ctx);
+
+            seen.Should().HaveCount(2);
+            seen[0].Should().Be(ctx);
+            seen[1].Should().BeNull();
+        }
+        finally
+        {
+            system.QueueFree();
+        }
+    }
+}

@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("InputForge.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b70387aac2fa5b206416737d0690a5ec877b1ed3")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d7fb1ad9b7d96240ea9515e7ae1cfb70bc10b573")]
 [assembly: System.Reflection.AssemblyProductAttribute("InputForge.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("InputForge.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

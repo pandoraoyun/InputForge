@@ -65,6 +65,25 @@ public partial class InputMappingContext : Resource
         }
     }
 
+    /// <summary>
+    /// Two contexts are equal if they share the same ContextName (case-insensitive).
+    /// Allows checks like: EnhancedInputSystem.GetInstance().GetCurrentContext() == GameplayContext
+    /// </summary>
+    public static bool operator ==(InputMappingContext a, InputMappingContext b)
+    {
+        if (a is null && b is null) return true;
+        if (a is null || b is null) return false;
+        return string.Equals(a.ContextName, b.ContextName, StringComparison.OrdinalIgnoreCase);
+    }
+
+    public static bool operator !=(InputMappingContext a, InputMappingContext b) => !(a == b);
+
+    public override bool Equals(object obj)
+        => obj is InputMappingContext other && this == other;
+
+    public override int GetHashCode()
+        => ContextName?.ToLowerInvariant().GetHashCode() ?? 0;
+
     private void Register(InputAction action, Delegate callback)
     {
         if (action == null || string.IsNullOrEmpty(action.ActionName) || callback == null) return;

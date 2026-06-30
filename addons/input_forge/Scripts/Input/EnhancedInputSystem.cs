@@ -17,6 +17,16 @@ public partial class EnhancedInputSystem : Node
 
     private readonly List<InputMappingContext> _activeContexts = new();
 
+    /// <summary>
+    /// When true, only the highest-priority active context is evaluated for input —
+    /// the loop breaks immediately after processing it, regardless of whether it
+    /// handled the event. Lower-priority contexts in the stack are never reached.
+    /// Toggle this on/off at runtime as needed (e.g. while a modal context like a
+    /// pause menu or mouse-look mode is active). Defaults to false, which preserves
+    /// the original fallback-to-lower-context behavior.
+    /// </summary>
+    public bool PreventFallbackContext { get; set; } = false;
+
     /// <summary>Pushes a context onto the active stack. Last added context has highest priority.</summary>
     public void AddContext(InputMappingContext context) => _activeContexts.Add(context);
 
@@ -52,6 +62,11 @@ public partial class EnhancedInputSystem : Node
                 GetViewport().SetInputAsHandled();
                 return;
             }
+
+            // When PreventFallbackContext is enabled, only the topmost context
+            // is ever evaluated — stop after the first iteration regardless of
+            // whether it matched anything.
+            if (PreventFallbackContext) break;
         }
     }
 }
