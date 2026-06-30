@@ -57,6 +57,13 @@ public partial class EnhancedInputSystem : Node
     {
         if (context == null) return;
 
+        // Capture the actual topmost context BEFORE any mutation. This matters even
+        // in the Replace-duplicate case: if `context` itself is currently the top and
+        // gets removed-then-re-added below, GetCurrentContext() would transiently
+        // report null/something-else in between — capturing it here avoids that and
+        // correctly reports "no change" when the context was already on top.
+        var previousTop = GetCurrentContext();
+
         bool alreadyActive = _activeContexts.Contains(context);
 
         if (alreadyActive)
@@ -67,8 +74,6 @@ public partial class EnhancedInputSystem : Node
             // without leaving a stale duplicate lower in the stack.
             _activeContexts.Remove(context);
         }
-
-        var previousTop = GetCurrentContext();
 
         _activeContexts.Add(context);
         context.NotifyPushed();
@@ -81,9 +86,13 @@ public partial class EnhancedInputSystem : Node
     public void RemoveContext(InputMappingContext context)
     {
         if (context == null) return;
+
+        // Capture the actual topmost context BEFORE mutating the stack — the context
+        // being removed is not necessarily (and usually isn't) the current top.
+        var previousTop = GetCurrentContext();
+
         if (!_activeContexts.Remove(context)) return;
 
-        var previousTop = context; // the removed context was, at minimum, in the stack
         context.NotifyPopped();
         EmitSignal(SignalName.ContextPopped, context);
 
