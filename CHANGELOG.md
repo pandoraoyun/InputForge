@@ -4,6 +4,19 @@ All notable changes to InputForge will be documented in this file.
 
 ## [Unreleased]
 
+## [0.2.0]
+
+### Added
+- `InputType.Pointer` — an `InputKey` can now report the **absolute mouse position**, read live from the active `Viewport` via `EnhancedInputSystem`'s internal viewport hook (not derived from motion deltas). Falls back to the triggering event's own `Position` when no `EnhancedInputSystem` instance is available. Pointer answers "where is the cursor" as opposed to `Delta`'s "how much did it move", so it is its own input type rather than a flag on `Delta`.
+- `DeviceType` on Boolean `InputKey`s (`Keyboard` / `JoyButton` / `MouseButton`) — the Boolean binding model now explicitly selects its physical device, cleanly covering keyboard keys, gamepad buttons, and mouse buttons through one type.
+- Inspector visibility (`InputKey._ValidateProperty`) shows only the fields relevant to the selected `InputType` / `DeviceType` / `AxisDimension` (e.g. Pointer hides delta-only `Sensitivity`/`IsYAxis`; Boolean hides axis fields).
+- Test suite expanded to ~84% line coverage of the addon assembly: modifier suites (`Invert`, `Scale`, `Swizzle`, `Normalize`), trigger suites (`TriggerOnKeyUp`, `TriggerContinuous`), full `InputKey` coverage (`HandleInput` routing for every type, `Equals`/`GetHashCode`/`==` binding identity, `_ValidateProperty` visibility matrix), plus `InputAction` and `ContextualInputEvent`. `InputForgeTestExtensions` adds deterministic singleton teardown for the shared 2dog engine. Coverage is measured via `coverage.runsettings` that excludes Godot's generated marshalling code; see `InputForge.Tests/README.md#coverage`.
+- CI: `.github/workflows/tests.yml` runs the test suite with coverage on every pull request to `main` (headless Godot via 2dog, no separate Godot install). Smoke/benchmark tests are skipped in CI.
+
+### Fixed
+- `InputMappingContext.PriorityChanged(bool)` could not be emitted — the `bool` argument was marshalled as `Nullable<bool>`, throwing `InvalidOperationException: type not supported for conversion to/from Variant`. The value is now wrapped with `Variant.From(...)` so it marshals as a plain `bool`. Caught by unit tests.
+- `EnhancedInputSystem._instance` was assigned in `_Ready` but never cleared, leaving a freed node referenced after teardown. Added `_ExitTree` cleanup (guarded against nulling a newer instance that already took over, e.g. during a reload).
+
 ## [0.1.1]
 
 ### Added
