@@ -14,6 +14,7 @@ namespace InputForge.Modifiers;
 /// not for global desktop-aware logic. Use <see cref="PointerSpace.ScreenSpace"/> to get
 /// true desktop coordinates spanning all monitors.
 /// </summary>
+[Tool]
 [GlobalClass]
 public sealed partial class PointerSpaceModifier : InputModifier
 {
@@ -27,7 +28,7 @@ public sealed partial class PointerSpaceModifier : InputModifier
         set { _space = value; NotifyPropertyListChanged(); }
     }
 
-    /// <summary>Target rect for <see cref="PointerSpace.RelativeToRect"/>, in viewport-local pixel coordinates.</summary>
+    /// <summary>Target rect for <see cref="PointerSpace.RelativeToRect"/>, in viewport-local pixel coordinates. Only shown in the Inspector when Space is RelativeToRect.</summary>
     [Export] public Rect2 TargetRect { get; set; } = new Rect2(0, 0, 1920, 1080);
 
     public override void _ValidateProperty(Godot.Collections.Dictionary property)
