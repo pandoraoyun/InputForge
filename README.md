@@ -103,6 +103,32 @@ public override void _ExitTree()
 
 ---
 
+## Benchmark / Smoke
+
+`InputForge.Tests` includes throughput/stability smoke tests (correctness-only, no hard timing assertions — timing is logged for humans to read, not used as a CI gate).
+
+**Subscriber count × event count** — dispatch cost stays well below linear as subscriber count grows:
+
+| subscribers | events | ms/event | ms/invocation |
+|---|---|---|---|
+| 1 | 1000 | 0.00045 | 0.000890 |
+| 50 | 1000 | 0.00081 | 0.000032 |
+| 500 | 1000 | 0.00308 | 0.000012 |
+
+**InputForge vs. raw `_Input()` override** — same simple logic expression, two architectures, fixed 300-event burst:
+
+| handlers | InputForge ms/handler | Raw `_Input()` ms/handler | ratio (Raw/Forge) |
+|---|---|---|---|
+| 10 | 0.019260 | 0.028570 | 1.48x |
+| 100 | 0.002632 | 0.010652 | 4.05x |
+| 500 | 0.001606 | 0.010850 | 6.76x |
+
+InputForge pays Godot's native `_Input()` dispatch cost once per event regardless of subscriber count, then fans out in-process. N separate `_Input()` overrides pay that dispatch cost N times per event — so the gap widens as handler count grows. Note the raw column here doesn't even include Godot's own native per-node dispatch/marshalling overhead, so this is a lower bound in InputForge's favor.
+
+Full tables, methodology, and caveats: [`InputForge.Tests/SMOKE_BENCH.md`](InputForge.Tests/SMOKE_BENCH.md). Test source: [`InputForge.Tests/System/InputThroughputSmokeTests.cs`](InputForge.Tests/System/InputThroughputSmokeTests.cs).
+
+---
+
 ## Documentation
 
 - [Architecture Overview](docs/architecture.md)

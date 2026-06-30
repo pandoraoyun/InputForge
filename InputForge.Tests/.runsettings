@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Default test run settings: EXCLUDES Smoke-trait tests by default so a plain
+  `dotnet test` only runs correctness/regression tests, not the throughput/stability
+  benchmarks (which are slow-ish and meant to be read by a human, not gate CI).
+
+  To run ONLY the smoke tests instead:
+    dotnet test --filter "Category=Smoke"
+
+  To run everything including smoke tests (ignore this default exclusion):
+    dotnet test --filter "Category!=DoesNotExist"
+  (the explicit --filter overrides this file's TestCaseFilter)
+-->
+<RunSettings>
+  <RunConfiguration>
+    <TestCaseFilter>Category!=Smoke</TestCaseFilter>
+  </RunConfiguration>
+</RunSettings>
