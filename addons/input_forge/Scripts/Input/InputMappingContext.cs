@@ -46,6 +46,14 @@ public partial class InputMappingContext : Resource
     /// <summary>Subscribe to an action and receive the full raw Vector3 value.</summary>
     public void BindAction(InputAction action, Action<Vector3> callback) => Register(action, callback);
 
+    /// <summary>
+    /// Subscribe to an action and receive the full <see cref="ContextualInputEvent"/>, including
+    /// <see cref="ContextualInputEvent.Source"/> — the <see cref="Mappings.InputKey"/> that fired.
+    /// Use this overload when one action is driven by multiple mappings and the callback needs
+    /// to know which physical source produced the value (e.g. WASD vs. mouse delta on one Move).
+    /// </summary>
+    public void BindAction(InputAction action, Action<ContextualInputEvent> callback) => Register(action, callback);
+
     /// <summary>Unsubscribe a boolean callback from an action.</summary>
     public void UnbindAction(InputAction action, Action<bool> callback)    => Unregister(action, callback);
 
@@ -58,11 +66,17 @@ public partial class InputMappingContext : Resource
     /// <summary>Unsubscribe a Vector3 callback from an action.</summary>
     public void UnbindAction(InputAction action, Action<Vector3> callback) => Unregister(action, callback);
 
+    /// <summary>Unsubscribe a <see cref="ContextualInputEvent"/> callback from an action.</summary>
+    public void UnbindAction(InputAction action, Action<ContextualInputEvent> callback) => Unregister(action, callback);
+
     /// <summary>
     /// Called by <see cref="EnhancedInputSystem"/> to deliver a processed action value
     /// to all registered subscribers. Each callback receives the value cast to its declared type.
+    /// The <paramref name="source"/> is the <see cref="Mappings.InputKey"/> that produced this
+    /// event; it is forwarded to <see cref="ContextualInputEvent"/>-typed callbacks so they can
+    /// tell which mapping fired when one action is driven by several.
     /// </summary>
-    public void PushAction(InputAction action, Vector3 value, InputEvent @event)
+    public void PushAction(InputAction action, Vector3 value, InputEvent @event, Mappings.InputKey source = null)
     {
         if (action == null || string.IsNullOrEmpty(action.ActionName)) return;
         if (!_actionEvents.TryGetValue(action.ActionName, out var callbacks)) return;
@@ -75,6 +89,15 @@ public partial class InputMappingContext : Resource
                 case Action<float>   floatCb: floatCb(value.X); break;
                 case Action<Vector2> vec2Cb:  vec2Cb(new Vector2(value.X, value.Y)); break;
                 case Action<Vector3> vec3Cb:  vec3Cb(value); break;
+                case Action<ContextualInputEvent> ctxCb:
+                    ctxCb(new ContextualInputEvent
+                    {
+                        Action = action,
+                        Source = source,
+                        RawEvent = @event,
+                        RawValue = value,
+                    });
+                    break;
             }
         }
     }

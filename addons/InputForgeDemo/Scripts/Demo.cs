@@ -1,4 +1,6 @@
 using Godot;
+using InputForge.Enum;
+using InputForge.Mappings;
 
 namespace InputForge.InputForgeDemo.Scripts;
 
@@ -24,15 +26,55 @@ public partial class Demo : Node2D
     /// <summary>How quickly the sprite rotates to face the velocity direction while driving. Higher = snappier.</summary>
     [Export] private float DriveRotationSpeed { get; set; } = 8f;
 
-    private Label _pressedButtonLabel;
-    private Label _calledActionLabel;
+    /// <summary>How fast the FORGE indicator glows fade back to gray (units of brightness per second).</summary>
+    [Export] private float ForgeFadeSpeed { get; set; } = 3f;
+
+    private RichTextLabel _rawLabel;
+    private RichTextLabel _forgeLabel;
+    private Label _actionLabel;
+    private Label _valueLabel;
 
     private bool _isDriving;
+    private Vector2 _cachedVelocity;
+    
+    /// 
+    ///  Two-row input indicator
+    ///
+    ///  RAW   row: polled straight from Godot.Input every frame — "is this key
+    ///             physically down right now". Lit while held, gray when not.
+    ///  FORGE row: driven only by InputForge action callbacks. When an action fires,
+    ///             the keys it represents flash to full brightness and then fade back
+    ///             to gray. So the FORGE row only ever lights up for input that the
+    ///             active context actually routed through the pipeline — move on foot
+    ///             and the mouse_delta cell never lights, because Character doesn't
+    ///             listen to it. That contrast is the whole point of the plugin.
+    ///
+
+    private enum Cell { W, A, S, D, Space, MouseDelta }
+
+    private static readonly (Cell Cell, string Label, Key Key)[] KeyCells =
+    {
+        (Cell.W, "W", Key.W),
+        (Cell.A, "A", Key.A),
+        (Cell.S, "S", Key.S),
+        (Cell.D, "D", Key.D),
+        (Cell.Space, "Space", Key.Space),
+    };
+
+    private const string MouseLabel = "mouse_delta";
+
+    // FORGE-row brightness per cell (0 = gray, 1 = full green). Decays each frame.
+    private readonly float[] _forgeGlow = new float[6];
+
+    private static readonly Color GrayColor  = new("6b7280");
+    private static readonly Color GreenColor = new("4ade80");
 
     public override void _Ready()
     {
-        _pressedButtonLabel = GameUi.GetNode<Label>("Control/PressedButton");
-        _calledActionLabel = GameUi.GetNode<Label>("Control/CalledAction");
+        _rawLabel   = GameUi.GetNode<RichTextLabel>("Control/VSplitContainer/PressedButton");
+        _forgeLabel = GameUi.GetNode<RichTextLabel>("Control/VSplitContainer/PressedButton2");
+        _actionLabel = GameUi.GetNode<Label>("Control/Value");
+        _valueLabel  = GameUi.GetNode<Label>("Control/CalledAction");
         ManuUi.Visible = false;
 
         var system = EnhancedInputSystem.GetInstance();
@@ -41,10 +83,9 @@ public partial class Demo : Node2D
         CharacterContext.BindAction(MoveAction, MoveActionHandler);
         CharacterContext.BindAction(SwitchDriveMode, SwitchDriveModeHandler);
         CharacterContext.BindAction(OpenMenuAction, MenuOpenActionHandler);
-            
-        
-        // DrivingContext.BindAction(MoveAction, MoveActionHandler);
-        // DrivingContext.BindAction(SwitchDriveMode, SwitchDriveModeHandler);
+
+        DrivingContext.BindAction(MoveAction, MoveActionHandler);
+        DrivingContext.BindAction(SwitchDriveMode, SwitchDriveModeHandler);
         // NOTE: DrivingInputMappingContext.tres has no InputMapping for OpenMenuAction
         // (only Move). Binding OpenMenuAction here would register a callback that can
         // never fire — there's nothing in the .tres to dispatch it. If Menu should be
@@ -54,23 +95,47 @@ public partial class Demo : Node2D
         MenuContext.BindAction(CloseMenuAction, MenuCloseActionHandler);
 
         base._Ready();
+
+        EnhancedInputSystem.GetInstance().ActiveContextChanged += HandleActiveContextChanged;
     }
 
-    private void MoveActionHandler(Vector2 direction)
+    private void MoveActionHandler(ContextualInputEvent e)
     {
+        var direction = new Vector2(e.RawValue.X, e.RawValue.Y);
         Body.Velocity = direction * 100f;
         UpdateInGameUi("Move", direction.ToString());
+
+        // FORGE row: light up exactly the cells for the source that actually fired.
+        // One Move action is driven by TWO mappings in DrivingContext (Digital WASD +
+        // Delta mouse). The callback can now tell them apart via e.Source.InputType —
+        // no guessing from raw input state, no context sniffing. This is the whole
+        // reason ContextualInputEvent carries Source.
+        if (e.Source == null) return;
+
+        if (e.Source.InputType == InputType.Delta)
+        {
+            FlashForge(Cell.MouseDelta);
+        }
+        else
+        {
+            // Digital/Analog source — derive the WASD cells from the direction vector.
+            if (direction.X > 0f) FlashForge(Cell.D);
+            if (direction.X < 0f) FlashForge(Cell.A);
+            if (direction.Y > 0f) FlashForge(Cell.S);
+            if (direction.Y < 0f) FlashForge(Cell.W);
+        }
     }
 
     private void SwitchDriveModeHandler(bool pressed)
     {
-        
         // UI reflects the raw value first, regardless of whether this is the rising
         // or falling edge — release IS expected to reach here too with the default
         // TriggerOnChange trigger, so this should show both true and false.
         UpdateInGameUi("SwitchDriveMode", pressed.ToString());
 
         if (!pressed) return;
+
+        FlashForge(Cell.Space);
 
         var system = EnhancedInputSystem.GetInstance();
 
@@ -96,11 +161,11 @@ public partial class Demo : Node2D
 
     private void MenuOpenActionHandler(bool pressed)
     {
-        GD.Print("Open menu: ", pressed);
-
         UpdateInGameUi("OpenMenu", pressed.ToString());
 
         if (!pressed) return;
+
+        FlashForge(Cell.Space);
 
         var system = EnhancedInputSystem.GetInstance();
 
@@ -119,10 +184,6 @@ public partial class Demo : Node2D
 
     private void MenuCloseActionHandler(bool pressed)
     {
-        GD.Print("Close menu: ", pressed);
-        // UI reflects the raw value first, same reasoning as SwitchDriveModeHandler
-        // above — we want to actually SEE the release reach this handler, not just
-        // the press, to confirm whether the underlying trigger is behaving correctly.
         UpdateInGameUi("CloseMenu", pressed.ToString());
 
         if (!pressed) return;
@@ -139,6 +200,9 @@ public partial class Demo : Node2D
         GameUi.Visible = true;
     }
 
+    /// <summary>Sets a FORGE indicator cell to full brightness; it fades back in _Process.</summary>
+    private void FlashForge(Cell cell) => _forgeGlow[(int)cell] = 1f;
+
     /// <summary>
     /// Drives the two debug labels in the in-game UI: which action last fired, and
     /// what value/state it carried. Kept intentionally simple — this is demo-only
@@ -146,8 +210,8 @@ public partial class Demo : Node2D
     /// </summary>
     private void UpdateInGameUi(string actionName, string value)
     {
-        if (_calledActionLabel != null) _calledActionLabel.Text = $"Action: {actionName}";
-        if (_pressedButtonLabel != null) _pressedButtonLabel.Text = $"Value: {value}";
+        if (_actionLabel != null) _actionLabel.Text = $"Action: {actionName}";
+        if (_valueLabel  != null) _valueLabel.Text  = $"Value: {value}";
     }
 
     public override void _PhysicsProcess(double delta)
@@ -165,5 +229,71 @@ public partial class Demo : Node2D
             float targetAngle = Body.Velocity.Angle();
             Sprite.Rotation = Mathf.LerpAngle(Sprite.Rotation, targetAngle, (float)delta * DriveRotationSpeed);
         }
+    }
+
+    public override void _Process(double delta)
+    {
+        RenderRawRow();
+        RenderForgeRow((float)delta);
+    }
+
+    /// <summary>
+    /// RAW row — polled directly from Godot.Input. A cell is fully lit while its key is
+    /// physically held. This bypasses InputForge on purpose: "is the key down right now"
+    /// is an instantaneous hardware question, not an action the pipeline dispatched.
+    /// </summary>
+    private void RenderRawRow()
+    {
+        if (_rawLabel == null) return;
+
+        var sb = new System.Text.StringBuilder("RAW   ");
+        foreach (var (_, label, key) in KeyCells)
+            sb.Append(Colored(label, Input.IsKeyPressed(key) ? 1f : 0f)).Append("  ");
+
+        bool mouseMoving = Input.GetLastMouseVelocity().LengthSquared() > 1f;
+        sb.Append(Colored(MouseLabel, mouseMoving ? 1f : 0f));
+
+        _rawLabel.Text = sb.ToString();
+    }
+
+    /// <summary>
+    /// FORGE row — driven only by InputForge action callbacks. Each cell flashes to full
+    /// brightness when an action lights it (see FlashForge) and fades back to gray here.
+    /// Cells only ever light for input the active context actually routed, so e.g.
+    /// mouse_delta stays dark on foot but pulses while driving.
+    /// </summary>
+    private void RenderForgeRow(float delta)
+    {
+        if (_forgeLabel == null) return;
+
+        var sb = new System.Text.StringBuilder("FORGE ");
+        for (int i = 0; i < KeyCells.Length; i++)
+        {
+            _forgeGlow[i] = Mathf.MoveToward(_forgeGlow[i], 0f, ForgeFadeSpeed * delta);
+            sb.Append(Colored(KeyCells[i].Label, _forgeGlow[i])).Append("  ");
+        }
+
+        int mouseIdx = (int)Cell.MouseDelta;
+        _forgeGlow[mouseIdx] = Mathf.MoveToward(_forgeGlow[mouseIdx], 0f, ForgeFadeSpeed * delta);
+        sb.Append(Colored(MouseLabel, _forgeGlow[mouseIdx]));
+
+        _forgeLabel.Text = sb.ToString();
+    }
+
+    /// <summary>Wraps text in a BBCode color lerped from gray (t=0) to green (t=1).</summary>
+    private static string Colored(string text, float t)
+    {
+        Color c = GrayColor.Lerp(GreenColor, Mathf.Clamp(t, 0f, 1f));
+        return $"[color=#{c.ToHtml(false)}]{text}[/color]";
+    }
+
+    private void HandleActiveContextChanged(InputMappingContext ctx)
+    {
+        bool enteringMenu = ctx == MenuContext;
+        bool resumingDriving = ctx == DrivingContext;
+
+        if (enteringMenu)       _cachedVelocity = Body.Velocity; // park
+        Body.Velocity = resumingDriving ? _cachedVelocity        // resume
+            : Vector2.Zero;          // freeze (menu) or reset (on-foot)
     }
 }

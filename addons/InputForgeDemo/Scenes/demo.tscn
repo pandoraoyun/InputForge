@@ -165,7 +165,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="PressedButton" type="Label" parent="InGameUi/Control" unique_id=1424523932]
+[node name="Value" type="Label" parent="InGameUi/Control" unique_id=1424523932]
 layout_mode = 0
 offset_left = 16.0
 offset_top = 16.0
@@ -180,6 +180,27 @@ offset_top = 40.0
 offset_right = 320.0
 offset_bottom = 63.0
 text = "Value: -"
+
+[node name="VSplitContainer" type="VBoxContainer" parent="InGameUi/Control" unique_id=139776050]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 64.0
+offset_right = 520.0
+offset_bottom = 120.0
+
+[node name="PressedButton" type="RichTextLabel" parent="InGameUi/Control/VSplitContainer" unique_id=2119486455]
+layout_mode = 2
+bbcode_enabled = true
+text = "[color=#6b7280]W A S D Space mouse_delta[/color]"
+fit_content = true
+scroll_active = false
+
+[node name="PressedButton2" type="RichTextLabel" parent="InGameUi/Control/VSplitContainer" unique_id=1384822635]
+layout_mode = 2
+bbcode_enabled = true
+text = "[color=#6b7280]W A S D Space mouse_delta[/color]"
+fit_content = true
+scroll_active = false
 
 [node name="MenuUi" type="CanvasLayer" parent="." unique_id=201812811]
 
