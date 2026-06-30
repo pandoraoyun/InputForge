@@ -29,7 +29,7 @@ project/assembly_name="InputForge"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/gdUnit4/plugin.cfg", "res://addons/input_forge/plugin.cfg")
+enabled=PackedStringArray("res://addons/input_forge/plugin.cfg")
 
 [gdunit4]
 

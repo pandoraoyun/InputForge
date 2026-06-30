@@ -19,4 +19,6 @@ public sealed partial class TriggerOnChange : InputTrigger
         _previousValue = value;
         return changed;
     }
+
+    public override void Reset() => _previousValue = Vector3.Zero;
 }

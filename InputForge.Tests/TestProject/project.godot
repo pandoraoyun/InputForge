@@ -3,7 +3,7 @@
 ; since the parameters that go here are not all obvious.
 ;
 ; Format:
-;   [section] ; section goes in []
+;   [section] ; section goes between []
 ;   param=value ; assign values to parameters
 
 config_version=5
@@ -11,5 +11,9 @@ config_version=5
 [application]
 
 config/name="InputForgeTests"
-config/features=PackedStringArray("4.6")
 run/main_scene="res://Dummy.tscn"
+config/features=PackedStringArray("4.6", "C#")
+
+[dotnet]
+
+project/assembly_name="InputForgeTests"

@@ -18,4 +18,6 @@ public sealed partial class TriggerOnKeyUp : InputTrigger
         _previousActive = currentActive;
         return fallingEdge;
     }
+
+    public override void Reset() => _previousActive = false;
 }

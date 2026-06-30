@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="InputAction" format=3 uid="uid://bby2ogwc2he3c"]
+
+[ext_resource type="Script" uid="uid://8fm83xrp7hg2" path="res://addons/input_forge/Scripts/Input/InputAction.cs" id="1_lsooh"]
+
+[resource]
+script = ExtResource("1_lsooh")
+ActionName = "MenuOpenAction"
+metadata/_custom_type_script = "uid://8fm83xrp7hg2"

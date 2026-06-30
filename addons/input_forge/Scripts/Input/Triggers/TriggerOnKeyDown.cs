@@ -12,11 +12,15 @@ public sealed partial class TriggerOnKeyDown : InputTrigger
 {
     private bool _previousActive;
 
+
     public override bool Evaluate(Vector3 value, InputEvent @event)
     {
         bool currentActive = value.Length() > 0f;
         bool risingEdge = currentActive && !_previousActive;
+
         _previousActive = currentActive;
         return risingEdge;
     }
+
+    public override void Reset() => _previousActive = false;
 }

@@ -38,30 +38,77 @@ public partial class InputMapping : Resource
     /// <summary>
     /// Evaluates all triggers using OR logic — fires if any trigger returns true.
     /// Falls back to the default trigger when the list is empty:
-    /// Boolean input uses <see cref="TriggerOnKeyDown"/>, axis input uses <see cref="TriggerOnChange"/>.
+    /// Boolean input uses <see cref="TriggerOnKeyDown"/> (rising-edge only — fires exactly
+    /// once per physical press, which is the correct/expected default for a bool "isPressed"
+    /// style action). Axis input (Digital, Analog, Delta, Pointer) uses <see cref="TriggerOnChange"/>.
+    ///
+    /// IMPORTANT: every trigger in LocalTriggers is evaluated on every call, even after one
+    /// has already returned true. Each trigger that holds its own edge/change-detection state
+    /// needs to see every event to keep that state correct — short-circuiting on the first
+    /// true would leave the remaining triggers' "previous value" stale, which can cause them
+    /// to misfire or fail to fire on a later event that should have updated them.
     /// </summary>
     public bool EvaluateTriggers(Vector3 value, InputEvent @event)
     {
         if (LocalTriggers.Count == 0)
             return DefaultTrigger(value, @event);
 
+        bool fired = false;
         foreach (var trigger in LocalTriggers)
-            if (trigger.Evaluate(value, @event)) return true;
+        {
+            // No short-circuit: every trigger must see this event to keep its own
+            // internal state correct, regardless of whether an earlier trigger
+            // already decided this should fire.
+            if (trigger.Evaluate(value, @event)) fired = true;
+        }
 
-        return false;
+        return fired;
     }
 
     private bool DefaultTrigger(Vector3 value, InputEvent @event)
     {
-        if (InputSource == null) return false;
+        var trigger = EnsureDefaultTrigger();
+        return trigger?.Evaluate(value, @event) ?? false;
+    }
+
+    /// <summary>
+    /// Lazily creates and returns the default trigger appropriate for this mapping's
+    /// input type — <see cref="TriggerOnKeyDown"/> for Boolean (rising-edge), otherwise
+    /// <see cref="TriggerOnChange"/>. Returns null when there is no InputSource. Shared by
+    /// <see cref="DefaultTrigger"/> (evaluation) and <see cref="BindTriggers"/> so the exact
+    /// instance that will run is also the one subscribed to ActiveContextChanged.
+    /// </summary>
+    private InputTrigger EnsureDefaultTrigger()
+    {
+        if (InputSource == null) return null;
 
         if (InputSource.InputType == InputType.Boolean)
-        {
-            _defaultBooleanTrigger ??= new TriggerOnKeyDown();
-            return _defaultBooleanTrigger.Evaluate(value, @event);
-        }
+            return _defaultBooleanTrigger ??= new TriggerOnKeyDown();
 
-        _defaultAxisTrigger ??= new TriggerOnChange();
-        return _defaultAxisTrigger.Evaluate(value, @event);
+        return _defaultAxisTrigger ??= new TriggerOnChange();
+    }
+
+    /// <summary>
+    /// Subscribes this mapping's active triggers to EnhancedInputSystem's ActiveContextChanged
+    /// signal (so they reset their edge-state whenever the active stack changes). Called by
+    /// InputMappingContext when the context is pushed. Mirrors EvaluateTriggers' selection:
+    /// binds the explicit LocalTriggers when present, otherwise the default trigger (created
+    /// eagerly here so the subscribed instance is the same one that later evaluates).
+    /// </summary>
+    internal void BindTriggers()
+    {
+        if (LocalTriggers.Count > 0)
+            foreach (var trigger in LocalTriggers) trigger?.Bind();
+        else
+            EnsureDefaultTrigger()?.Bind();
+    }
+
+    /// <summary>Counterpart to <see cref="BindTriggers"/>; called when the context is popped.</summary>
+    internal void UnbindTriggers()
+    {
+        if (LocalTriggers.Count > 0)
+            foreach (var trigger in LocalTriggers) trigger?.Unbind();
+        else
+            EnsureDefaultTrigger()?.Unbind();
     }
 }

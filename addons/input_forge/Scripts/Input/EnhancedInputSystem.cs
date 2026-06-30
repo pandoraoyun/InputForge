@@ -80,11 +80,17 @@ public partial class EnhancedInputSystem : Node
             if (DuplicateContextBehavior == DuplicateContextBehavior.Ignore) return;
 
             // Replace: drop the existing entry first so re-adding brings it to the top
-            // without leaving a stale duplicate lower in the stack.
+            // without leaving a stale duplicate lower in the stack. Unbind first so the
+            // BindTriggers below doesn't double-subscribe this context's triggers.
+            context.UnbindTriggers();
             _activeContexts.Remove(context);
         }
 
         _activeContexts.Add(context);
+        // Bind BEFORE NotifyPriorityChangesAfterStackMutation so this context's triggers
+        // are already subscribed when the push's own ActiveContextChanged fires — they
+        // then reset to a clean baseline as part of becoming active.
+        context.BindTriggers();
         context.NotifyPushed();
         EmitSignal(SignalName.ContextPushed, context);
 
@@ -102,6 +108,9 @@ public partial class EnhancedInputSystem : Node
 
         if (!_activeContexts.Remove(context)) return;
 
+        // Unbind the leaving context's triggers; the remaining (now re-exposed) contexts
+        // are still bound and will reset via the ActiveContextChanged emitted below.
+        context.UnbindTriggers();
         context.NotifyPopped();
         EmitSignal(SignalName.ContextPopped, context);
 

@@ -1,0 +1,230 @@
+[gd_scene format=3 uid="uid://ba4vqoaw5xc72"]
+
+[ext_resource type="Texture2D" uid="uid://c7sd23mt5r2g7" path="res://addons/InputForgeDemo/Assets/16x32 Idle-Sheet.png" id="1_1o3q4"]
+[ext_resource type="Script" uid="uid://ba0h1ruye1b7" path="res://addons/InputForgeDemo/Scripts/Demo.cs" id="1_51tpe"]
+[ext_resource type="Texture2D" uid="uid://b2j3vxl8jfhm3" path="res://addons/InputForgeDemo/Assets/16x32 Run-Sheet.png" id="2_1pmp8"]
+[ext_resource type="Resource" uid="uid://dqhtx6c50fjf8" path="res://addons/InputForgeDemo/Resources/CharacterInputMappingContext.tres" id="2_ilsy5"]
+[ext_resource type="Resource" uid="uid://bbf3k7h4wv22x" path="res://addons/InputForgeDemo/Resources/MoveAction.tres" id="3_ayloi"]
+[ext_resource type="Script" uid="uid://qyaquu0djt7t" path="res://addons/InputForgeDemo/Scripts/AnimationTree.cs" id="3_d5w2b"]
+[ext_resource type="Resource" uid="uid://djep0qb3m4fim" path="res://addons/InputForgeDemo/Resources/DrivingInputMappingContext.tres" id="3_wpsoy"]
+[ext_resource type="Resource" uid="uid://c6o87qixmu5qb" path="res://addons/InputForgeDemo/Resources/MenuInputMappingContext.tres" id="4_roomx"]
+[ext_resource type="Resource" uid="uid://boqsqowdfnlms" path="res://addons/InputForgeDemo/Resources/SwithDriveMode.tres" id="4_sxr7a"]
+[ext_resource type="Texture2D" uid="uid://dyue8kghscdkj" path="res://addons/InputForgeDemo/Assets/WhiteStrip.png" id="7_ayloi"]
+[ext_resource type="Resource" uid="uid://b5ur0tlsv37sy" path="res://addons/InputForgeDemo/Resources/CloseMenuAction.tres" id="7_ts1kl"]
+[ext_resource type="Resource" uid="uid://bby2ogwc2he3c" path="res://addons/InputForgeDemo/Resources/MenuOpenAction.tres" id="8_ts1kl"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ychbn"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1pmp8"]
+atlas = ExtResource("1_1o3q4")
+region = Rect2(0, 64, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_d5w2b"]
+atlas = ExtResource("1_1o3q4")
+region = Rect2(32, 64, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_51tpe"]
+atlas = ExtResource("1_1o3q4")
+region = Rect2(64, 64, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_oapr4"]
+atlas = ExtResource("1_1o3q4")
+region = Rect2(96, 64, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ilsy5"]
+atlas = ExtResource("2_1pmp8")
+region = Rect2(0, 64, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ayloi"]
+atlas = ExtResource("2_1pmp8")
+region = Rect2(32, 64, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sxr7a"]
+atlas = ExtResource("2_1pmp8")
+region = Rect2(64, 64, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wpsoy"]
+atlas = ExtResource("2_1pmp8")
+region = Rect2(96, 64, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_350lm"]
+atlas = ExtResource("2_1pmp8")
+region = Rect2(128, 64, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_roomx"]
+atlas = ExtResource("2_1pmp8")
+region = Rect2(160, 64, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_ygunx"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("7_ayloi")
+}],
+"loop": 1,
+"name": &"Drive",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1pmp8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_d5w2b")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_51tpe")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_oapr4")
+}],
+"loop": 1,
+"name": &"Iddle",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ilsy5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ayloi")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_sxr7a")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wpsoy")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_350lm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_roomx")
+}],
+"loop": 1,
+"name": &"Run",
+"speed": 5.0
+}]
+
+[sub_resource type="AnimationNodeBlendSpace1D" id="AnimationNodeBlendSpace1D_ayloi"]
+min_space = 0.0
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_1pmp8"]
+animation = &"RunLeft"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_d5w2b"]
+animation = &"RunRight"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_51tpe"]
+animation = &"Iddle"
+
+[sub_resource type="AnimationNodeBlendSpace1D" id="AnimationNodeBlendSpace1D_oapr4"]
+value_label = "direction"
+blend_point_0/node = SubResource("AnimationNodeAnimation_1pmp8")
+blend_point_0/pos = -1.0
+blend_point_0/name = &"Run"
+blend_point_1/node = SubResource("AnimationNodeAnimation_d5w2b")
+blend_point_1/pos = 1.0
+blend_point_1/name = &"Run 2"
+blend_point_2/node = SubResource("AnimationNodeAnimation_51tpe")
+blend_point_2/pos = 0.0
+blend_point_2/name = &"Iddle"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_d5w2b"]
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_ychbn"]
+states/BlendSpace1D/node = SubResource("AnimationNodeBlendSpace1D_oapr4")
+states/BlendSpace1D/position = Vector2(610, 99.703705)
+"states/BlendSpace1D 2/node" = SubResource("AnimationNodeBlendSpace1D_ayloi")
+"states/BlendSpace1D 2/position" = Vector2(339.33334, 163.33333)
+transitions = ["Start", "BlendSpace1D", SubResource("AnimationNodeStateMachineTransition_d5w2b")]
+
+[node name="Demo" type="Node2D" unique_id=1669051917 node_paths=PackedStringArray("Body", "GameUi", "ManuUi", "AnimationTree", "Sprite")]
+script = ExtResource("1_51tpe")
+CharacterContext = ExtResource("2_ilsy5")
+DrivingContext = ExtResource("3_wpsoy")
+MenuContext = ExtResource("4_roomx")
+MoveAction = ExtResource("3_ayloi")
+SwitchDriveMode = ExtResource("4_sxr7a")
+CloseMenuAction = ExtResource("7_ts1kl")
+OpenMenuAction = ExtResource("8_ts1kl")
+Body = NodePath("CharacterBody2D")
+GameUi = NodePath("InGameUi")
+ManuUi = NodePath("MenuUi")
+AnimationTree = NodePath("CharacterBody2D/AnimationTree")
+Sprite = NodePath("CharacterBody2D/AnimatedSprite2D")
+
+[node name="InGameUi" type="CanvasLayer" parent="." unique_id=971697239]
+
+[node name="Control" type="Control" parent="InGameUi" unique_id=76143125]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PressedButton" type="Label" parent="InGameUi/Control" unique_id=1424523932]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 320.0
+offset_bottom = 39.0
+text = "Action: -"
+
+[node name="CalledAction" type="Label" parent="InGameUi/Control" unique_id=1273066699]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 40.0
+offset_right = 320.0
+offset_bottom = 63.0
+text = "Value: -"
+
+[node name="MenuUi" type="CanvasLayer" parent="." unique_id=201812811]
+
+[node name="Dim" type="ColorRect" parent="MenuUi" unique_id=-282228795]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.6)
+
+[node name="Control" type="Control" parent="MenuUi" unique_id=741887498]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="MenuUi/Control" unique_id=1646715306]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "Press \"Space\" to exit menu"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CharacterBody2D" type="CharacterBody2D" parent="." unique_id=1517419244]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D" unique_id=1026463568]
+shape = SubResource("RectangleShape2D_ychbn")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="CharacterBody2D" unique_id=1940354249]
+position = Vector2(51.5, 51.5)
+scale = Vector2(4.21875, 4.21875)
+sprite_frames = SubResource("SpriteFrames_ygunx")
+animation = &"Iddle"
+
+[node name="AnimationTree" type="AnimationTree" parent="CharacterBody2D" unique_id=2061201738 node_paths=PackedStringArray("Body2D")]
+tree_root = SubResource("AnimationNodeStateMachine_ychbn")
+anim_player = NodePath("../AnimationPlayer")
+parameters/BlendSpace1D/blend_position = 0.0
+"parameters/BlendSpace1D 2/blend_position" = 0.0
+script = ExtResource("3_d5w2b")
+Body2D = NodePath("..")

@@ -92,6 +92,24 @@ public partial class InputMappingContext : Resource
     internal void NotifyPriorityChanged(bool isTopmost) => EmitSignal(SignalName.PriorityChanged, isTopmost);
 
     /// <summary>
+    /// Subscribes every mapping's triggers to the system's ActiveContextChanged signal.
+    /// Called by EnhancedInputSystem when this context is pushed onto the active stack,
+    /// so the triggers reset their edge-state on any subsequent stack change.
+    /// </summary>
+    internal void BindTriggers()
+    {
+        foreach (var mapping in Mappings)
+            mapping?.BindTriggers();
+    }
+
+    /// <summary>Counterpart to <see cref="BindTriggers"/>; called when this context is popped.</summary>
+    internal void UnbindTriggers()
+    {
+        foreach (var mapping in Mappings)
+            mapping?.UnbindTriggers();
+    }
+
+    /// <summary>
     /// Two contexts are equal if they share the same ContextName (case-insensitive).
     /// Allows checks like: EnhancedInputSystem.GetInstance().GetCurrentContext() == GameplayContext
     /// </summary>

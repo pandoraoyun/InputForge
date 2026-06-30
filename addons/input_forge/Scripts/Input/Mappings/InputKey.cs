@@ -1,3 +1,4 @@
+using System;
 using Godot;
 using InputForge.Enum;
 
@@ -229,4 +230,95 @@ public partial class InputKey : Resource
         _currentValue = new Vector3(position.X, position.Y, 0f);
         return true;
     }
+
+    /// <summary>
+    /// Two InputKeys are equal if they bind the same physical input — same InputType,
+    /// same device, and same key/button/axis configuration for that type. Runtime state
+    /// (the captured _currentValue) is intentionally excluded; this is a binding-identity
+    /// comparison, not a value comparison of what each key currently reports.
+    ///
+    /// Used to detect when two InputMappingContexts (e.g. one above another in the active
+    /// stack) listen to the same physical key — InputMappingContext uses this to find and
+    /// reset only the trigger state that actually overlaps with whatever just changed,
+    /// rather than resetting everything indiscriminately.
+    /// </summary>
+    public override bool Equals(object obj)
+    {
+        if (obj is not InputKey other) return false;
+        if (InputType != other.InputType) return false;
+
+        return InputType switch
+        {
+            InputType.Boolean => DeviceType == other.DeviceType && BooleanBindingEquals(other),
+            InputType.Digital => AxisDimension == other.AxisDimension && DigitalBindingEquals(other),
+            InputType.Analog  => AxisDimension == other.AxisDimension && AnalogBindingEquals(other),
+            InputType.Delta   => true,  // all Delta keys read the same mouse motion stream
+            InputType.Pointer => true,  // all Pointer keys read the same Viewport cursor position
+            _ => false
+        };
+    }
+
+    private bool BooleanBindingEquals(InputKey other) => DeviceType switch
+    {
+        InputDeviceType.Keyboard    => KeyboardKey == other.KeyboardKey,
+        InputDeviceType.JoyButton   => GamepadButton == other.GamepadButton,
+        InputDeviceType.MouseButton => MouseKey == other.MouseKey,
+        _ => false
+    };
+
+    private bool DigitalBindingEquals(InputKey other)
+        => PositiveKey == other.PositiveKey && NegativeKey == other.NegativeKey
+           && (AxisDimension != AxisDimension.Axis2D
+               || (PositiveKeyY == other.PositiveKeyY && NegativeKeyY == other.NegativeKeyY));
+
+    private bool AnalogBindingEquals(InputKey other)
+        => JoystickAxis == other.JoystickAxis
+           && (AxisDimension != AxisDimension.Axis2D || JoystickAxisY == other.JoystickAxisY);
+
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(InputType);
+
+        switch (InputType)
+        {
+            case InputType.Boolean:
+                hash.Add(DeviceType);
+                switch (DeviceType)
+                {
+                    case InputDeviceType.Keyboard:    hash.Add(KeyboardKey); break;
+                    case InputDeviceType.JoyButton:   hash.Add(GamepadButton); break;
+                    case InputDeviceType.MouseButton: hash.Add(MouseKey); break;
+                }
+                break;
+            case InputType.Digital:
+                hash.Add(AxisDimension);
+                hash.Add(PositiveKey);
+                hash.Add(NegativeKey);
+                if (AxisDimension == AxisDimension.Axis2D)
+                {
+                    hash.Add(PositiveKeyY);
+                    hash.Add(NegativeKeyY);
+                }
+                break;
+            case InputType.Analog:
+                hash.Add(AxisDimension);
+                hash.Add(JoystickAxis);
+                if (AxisDimension == AxisDimension.Axis2D) hash.Add(JoystickAxisY);
+                break;
+            // Delta and Pointer have no further distinguishing fields — every instance
+            // of that type reads the same underlying input stream.
+        }
+
+        return hash.ToHashCode();
+    }
+
+    public static bool operator ==(InputKey a, InputKey b)
+    {
+        if (a is null && b is null) return true;
+        if (a is null || b is null) return false;
+        return a.Equals(b);
+    }
+
+    public static bool operator !=(InputKey a, InputKey b) => !(a == b);
 }
