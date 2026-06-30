@@ -21,7 +21,7 @@ public partial class InputKey : Resource
     private InputDeviceType _deviceType = InputDeviceType.Keyboard;
     private AxisDimension _axisDimension = AxisDimension.Axis1D;
 
-    /// <summary>Selects the input category: button, digital axis, analog stick, or mouse delta.</summary>
+    /// <summary>Selects the input category: button, digital axis, analog stick, mouse delta, or absolute pointer position.</summary>
     [Export]
     public InputType InputType
     {
@@ -94,6 +94,8 @@ public partial class InputKey : Resource
         if (name == nameof(JoystickAxis)  && !isAnalog) Hide(property);
         if (name == nameof(JoystickAxisY) && !(isAnalog && is2D)) Hide(property);
 
+        // Sensitivity and IsYAxis only apply to Delta — Pointer reads an absolute
+        // position from the live Viewport, where neither concept makes sense.
         if (name == nameof(Sensitivity) && !isDelta) Hide(property);
         if (name == nameof(IsYAxis)     && !(isDelta && !is2D)) Hide(property);
     }
@@ -115,6 +117,7 @@ public partial class InputKey : Resource
             InputType.Digital => HandleDigital(@event),
             InputType.Analog  => HandleAnalog(@event),
             InputType.Delta   => HandleDelta(@event),
+            InputType.Pointer => HandlePointer(@event),
             _ => false
         };
     }
@@ -202,6 +205,28 @@ public partial class InputKey : Resource
             float delta = IsYAxis ? mouseMotion.Relative.Y : mouseMotion.Relative.X;
             _currentValue = new Vector3(delta * Sensitivity, 0f, 0f);
         }
+        return true;
+    }
+
+    /// <summary>
+    /// A mouse motion event still has to arrive to trigger this — InputForge stays
+    /// event-driven, never polling every frame. Once triggered, the value itself is
+    /// read from the live Viewport's GetMousePosition() via EnhancedInputSystem's
+    /// internal GetInputViewport() hook (a Resource like InputKey has no Viewport
+    /// access of its own). This is a snapshot of "where is the cursor right now",
+    /// not a delta derived from movement — Pointer is not Delta with different math,
+    /// it's a different kind of question. Falls back to the event's own Position if
+    /// no EnhancedInputSystem instance is available (e.g. used outside the normal
+    /// dispatch path in a test).
+    /// </summary>
+    private bool HandlePointer(InputEvent @event)
+    {
+        if (@event is not InputEventMouseMotion mouseMotion) return false;
+
+        var viewport = EnhancedInputSystem.GetInstance()?.GetInputViewport();
+        var position = viewport != null ? viewport.GetMousePosition() : mouseMotion.Position;
+
+        _currentValue = new Vector3(position.X, position.Y, 0f);
         return true;
     }
 }

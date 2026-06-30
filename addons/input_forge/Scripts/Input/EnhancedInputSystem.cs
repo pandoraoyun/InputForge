@@ -49,6 +49,15 @@ public partial class EnhancedInputSystem : Node
         => _activeContexts.Count > 0 ? _activeContexts[^1] : null;
 
     /// <summary>
+    /// Internal hook so Resource-based types (which cannot call Node.GetViewport()
+    /// themselves) can reach the live Viewport through the singleton instance.
+    /// Used by InputKey's Pointer mode to query the current mouse position via
+    /// Viewport.GetMousePosition(). Not part of the public API — only InputForge's
+    /// own Resource types should depend on this.
+    /// </summary>
+    internal Viewport GetInputViewport() => GetViewport();
+
+    /// <summary>
     /// Pushes a context onto the active stack. Last added context has highest priority.
     /// If the context is already in the stack, behavior is controlled by <see cref="DuplicateContextBehavior"/>:
     /// Ignore silently no-ops, Replace (default) moves it to the top.
