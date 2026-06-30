@@ -71,6 +71,12 @@ public class InputKeyPointerTests(InputForgeTestFixture fixture)
         var expectedFallbackPosition = new Vector2(-12345f, -12345f);
         var evt = new InputEventMouseMotion { Position = expectedFallbackPosition };
 
+        // This shared-engine collection leaves EnhancedInputSystem nodes parented to the
+        // tree (QueueFree never runs without a processed frame), so a leftover singleton
+        // may linger. Synchronously evict it so the "no instance" precondition holds
+        // regardless of execution order.
+        InputForgeTestExtensions.DropEnhancedInputSystemInstance();
+
         EnhancedInputSystem.GetInstance().Should().BeNull(
             "this test assumes no EnhancedInputSystem instance is registered in the current test context");
 

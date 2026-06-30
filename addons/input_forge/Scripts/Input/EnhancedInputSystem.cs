@@ -25,6 +25,14 @@ public partial class EnhancedInputSystem : Node
 
     public override void _Ready() => _instance = this;
 
+    public override void _ExitTree()
+    {
+        // Clear the singleton when this instance leaves the tree so a freed node
+        // is never left dangling in _instance. Guarded in case another instance
+        // has already taken over (e.g. during a reload).
+        if (_instance == this) _instance = null;
+    }
+
     private readonly List<InputMappingContext> _activeContexts = new();
 
     /// <summary>

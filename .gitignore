@@ -8,3 +8,16 @@ obj/
 
 # Rider
 .idea/
+
+# Test / coverage output (regenerated on every run; CI produces these as artifacts)
+TestResults/
+coveragereport/
+*.trx
+
+# Stray working artifacts
+*.bak
+*.tmp
+*.done
+
+# Rider per-user settings
+*.DotSettings.user

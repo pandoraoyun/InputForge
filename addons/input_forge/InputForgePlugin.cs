@@ -1,7 +1,9 @@
 #if TOOLS
 using Godot;
+using System.Diagnostics.CodeAnalysis;
 
 [Tool]
+[ExcludeFromCodeCoverage] // Editor-only boilerplate (type registration + autoload); no testable logic.
 public partial class InputForgePlugin : EditorPlugin
 {
     private const string AutoloadName = "EnhancedInputSystem";

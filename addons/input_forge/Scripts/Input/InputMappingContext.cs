@@ -89,7 +89,7 @@ public partial class InputMappingContext : Resource
     /// Called by <see cref="EnhancedInputSystem"/> whenever the active stack changes in a way
     /// that may affect whether this context is the topmost one.
     /// </summary>
-    internal void NotifyPriorityChanged(bool isTopmost) => EmitSignal(SignalName.PriorityChanged, isTopmost);
+    internal void NotifyPriorityChanged(bool isTopmost) => EmitSignal(SignalName.PriorityChanged, Variant.From(isTopmost));
 
     /// <summary>
     /// Subscribes every mapping's triggers to the system's ActiveContextChanged signal.

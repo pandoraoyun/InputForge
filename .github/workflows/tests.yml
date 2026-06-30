@@ -1,0 +1,94 @@
+name: Tests
+
+# Runs the InputForge.Tests suite on every pull request (and on pushes to main).
+# The suite executes against a REAL headless Godot runtime embedded by the 2dog
+# NuGet package — no separate Godot install step is needed; restoring the test
+# project pulls the matching Godot 4.6 binary down with it.
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+# Cancel an in-progress run if the same PR/branch gets a newer push.
+concurrency:
+  group: tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test (.NET 9 + headless Godot)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      # Cache the NuGet package store. Keyed on the project/lock files so the cache is
+      # reused until a dependency version changes.
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', '**/global.json') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Restore
+        run: dotnet restore InputForge.Tests/InputForge.Tests.csproj
+
+      - name: Build
+        run: dotnet build InputForge.Tests/InputForge.Tests.csproj --configuration Debug --no-restore
+
+      # 2dog boots Godot headless with the dummy rendering/audio drivers (set in
+      # InputForgeTestFixture), so no real display is required. xvfb-run is kept as a
+      # belt-and-braces wrapper in case any Godot subsystem still probes for X11 on init.
+      #
+      # Smoke/benchmark tests ([Trait("Category","Smoke")]) are skipped here: they log
+      # timings rather than asserting, and CI runners have variable hardware that makes
+      # their numbers meaningless. Run them locally with --filter "Category=Smoke".
+      - name: Test (with coverage)
+        run: >
+          xvfb-run --auto-servernum
+          dotnet test InputForge.Tests/InputForge.Tests.csproj
+          --configuration Debug
+          --no-build
+          --filter "Category!=Smoke"
+          --settings InputForge.Tests/coverage.runsettings
+          --collect:"XPlat Code Coverage"
+          --logger "trx;LogFileName=test-results.trx"
+          --results-directory ./TestResults
+
+      # Human-readable coverage summary in the job log + PR step summary.
+      - name: Coverage summary
+        if: always()
+        run: |
+          dotnet tool install --global dotnet-reportgenerator-globaltool
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          reportgenerator \
+            -reports:"TestResults/**/coverage.cobertura.xml" \
+            -targetdir:"TestResults/coveragereport" \
+            "-reporttypes:TextSummary;MarkdownSummaryGithub"
+          {
+            echo "## Coverage"
+            cat TestResults/coveragereport/SummaryGithub.md 2>/dev/null \
+              || cat TestResults/coveragereport/Summary.txt
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Keep the raw results (trx + cobertura + html) as a downloadable artifact.
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            TestResults/**/coverage.cobertura.xml
+            TestResults/**/*.trx
+            TestResults/coveragereport/**
+          retention-days: 14

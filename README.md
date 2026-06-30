@@ -127,6 +127,8 @@ InputForge pays Godot's native `_Input()` dispatch cost once per event regardles
 
 Full tables, methodology, and caveats: [`InputForge.Tests/SMOKE_BENCH.md`](InputForge.Tests/SMOKE_BENCH.md). Test source: [`InputForge.Tests/System/InputThroughputSmokeTests.cs`](InputForge.Tests/System/InputThroughputSmokeTests.cs).
 
+**Coverage:** the addon assembly sits at ~84% line coverage, measured against a real headless Godot runtime. See [`InputForge.Tests/README.md`](InputForge.Tests/README.md#coverage) for how that figure is computed and why an unfiltered run reports much lower (Godot's generated marshalling code inflates the raw number).
+
 ---
 
 ## Documentation
