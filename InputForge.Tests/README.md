@@ -41,12 +41,39 @@ The addon assembly sits at **~84% line coverage** (Coverlet, `InputForge` assemb
 
 **Environment-bound paths.** `InputType.Digital`/`Analog` read live OS state through `Godot.Input.IsKeyPressed`/`GetJoyAxis`, which synthetic `InputEvent` objects don't drive in a headless run. These are covered at the routing level (correct event matched, value shape) rather than by asserting a produced magnitude.
 
-Reproduce locally:
+Reproduce locally. **Run from the repository root, not from inside `InputForge.Tests/`** — the `--settings` path is resolved relative to your current directory, so running it from inside `InputForge.Tests/` makes it look for `InputForge.Tests/InputForge.Tests/coverage.runsettings`, which doesn't exist and fails with a confusing collector error (`MSB6006: "dotnet.exe" exited with code 1`) rather than a clear "file not found":
 
 ```bash
-dotnet test --settings coverage.runsettings --collect:"XPlat Code Coverage"
-reportgenerator -reports:"TestResults/*/coverage.cobertura.xml" -targetdir:"coveragereport" "-reporttypes:Html;TextSummary"
+# from G:\Projects\input-forge  (repo root)
+dotnet test InputForge.Tests/InputForge.Tests.csproj \
+  --settings InputForge.Tests/coverage.runsettings \
+  --collect:"XPlat Code Coverage" \
+  --filter "Category!=Smoke"
+
+reportgenerator -reports:"InputForge.Tests/TestResults/*/coverage.cobertura.xml" \
+  -targetdir:"coveragereport" "-reporttypes:Html;TextSummary"
 ```
+
+### If the run fails with `NativeMethodBindNotFoundException` (`Resource.copy_from_resource`) or "script is not compiling"
+
+This is almost always a stale build/cache, not a code problem (the editor and CI run clean and pass). The local `dotnet` build can leave behind a `TestProject/.godot/mono` cache compiled against a different Godot runtime than the one 2dog loads, which produces a method-bind mismatch at construction time. Reset from a clean state:
+
+```bash
+# from the repo root, with Godot editor and Rider closed
+rm -rf InputForge.Tests/TestProject/.godot
+rm -rf InputForge.Tests/obj InputForge.Tests/bin
+
+dotnet restore InputForge.Tests/InputForge.Tests.csproj
+dotnet build   InputForge.Tests/InputForge.Tests.csproj --configuration Debug --no-restore
+dotnet test    InputForge.Tests/InputForge.Tests.csproj \
+  --configuration Debug --no-build \
+  --settings InputForge.Tests/coverage.runsettings \
+  --filter "Category!=Smoke"
+```
+
+(PowerShell: replace `rm -rf X` with `Remove-Item -Recurse -Force X -ErrorAction SilentlyContinue`.)
+
+Don't open the Godot editor between deleting `.godot` and running the tests — let 2dog be the first thing to populate the cache, so it's built against 2dog's own runtime rather than the editor's.
 
 The coverage tooling setup, the generated-code filtering in `coverage.runsettings`, and the test suite that produced these figures were prepared with the assistance of **Claude Opus 4.8** (Anthropic).
 

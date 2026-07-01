@@ -47,11 +47,20 @@ This is the default for axis mappings because it ensures that releasing a key se
 
 ## TriggerContinuous
 
-Fires every event while the value is non-zero.
+Fires while the value is non-zero. Has two modes, controlled by the `Pulse` flag.
 
-No configurable properties.
+| Property        | Description                                                                 |
+|-----------------|-----------------------------------------------------------------------------|
+| `Pulse`         | When off (default), fires on every event while non-zero. When on, throttles to one fire per `PulseInterval`. |
+| `PulseInterval` | Seconds between pulses while the value is held non-zero. Only shown when `Pulse` is enabled. Lower = faster repeat. |
 
-Use for: actions that should repeat while a button is held. Note that for Digital input, OS key-repeat events are filtered by `InputKey`, so this trigger will fire on the first press but not on subsequent frames unless the value changes. For true frame-rate continuous input, consider polling `Input.IsKeyPressed` in `_Process` instead.
+**Default mode (`Pulse` off):** fires on every event while the value is non-zero — use for per-event accumulation like building up charge.
+
+**Pulse mode (`Pulse` on):** fires at most once every `PulseInterval` seconds while the input is held. The first event of a fresh hold fires immediately, then subsequent fires are spaced by the interval; releasing the input (value returns to zero) resets the timer so the next press fires right away. Use for repeat-fire weapons, held-button repeats, or step-wise scrolling.
+
+The pulse cadence is measured in real time (`Time.GetTicksMsec`), not by counting events or frames — event arrival rate isn't constant, so a wall-clock interval is the only stable measure. It still relies on events arriving to be evaluated.
+
+Note: for Digital input, OS key-repeat events are filtered by `InputKey`, so on a held key this trigger only re-evaluates when the axis value changes. Pulse mode is most predictable with input that streams events continuously (mouse motion, analog axes). For frame-perfect continuous input regardless of event flow, consider polling `Input.IsKeyPressed` in `_Process` instead.
 
 ---
 

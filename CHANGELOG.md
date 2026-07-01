@@ -2,13 +2,20 @@
 
 All notable changes to InputForge will be documented in this file.
 
-## [Unreleased]
+## [0.2.1]
+
+### Added
+- **Multiple subscribers per action.** `InputMappingContext` now stores per-type subscriber *lists* (`Bool` / `Float` / `Vec2` / `Vec3` / `Contextual`), keyed case-insensitively by action name, so several callbacks can `BindAction` to the same action and all of them fire on dispatch. `UnbindAction` removes a single callback from its list. Each typed list is allocated lazily on the first bind of that type. Public `BindAction` / `UnbindAction` signatures are unchanged — existing single-subscriber code behaves identically; this only lifts the previous "one callback per action per type" limitation. The per-type split is a deliberate tradeoff: instead of scanning one mixed subscriber list and `switch`-ing on each delegate's `Action<>` type (a type check per subscriber plus value boxing) on *every* input push, dispatch pays at most five lazy list allocations *once* and then calls each typed list directly with the pre-computed value — trading a recurring per-event scan/boxing cost for a one-time allocation cost.
+
+### Internal
+- `SubscriberListExtensions.Invoke<T>` (`internal`) — null/empty-safe dispatch helper that walks a subscriber list with a plain indexed loop (no enumerator allocation, no per-event type switching). `PushAction` computes each value once and shares it across every subscriber of that type via `list.Invoke(value)`, replacing the repeated "null-check, count-check, for loop" block per callback type. Not part of the public API surface.
 
 ## [0.2.0]
 
 ### Added
 - `InputType.Pointer` — an `InputKey` can now report the **absolute mouse position**, read live from the active `Viewport` via `EnhancedInputSystem`'s internal viewport hook (not derived from motion deltas). Falls back to the triggering event's own `Position` when no `EnhancedInputSystem` instance is available. Pointer answers "where is the cursor" as opposed to `Delta`'s "how much did it move", so it is its own input type rather than a flag on `Delta`.
 - `DeviceType` on Boolean `InputKey`s (`Keyboard` / `JoyButton` / `MouseButton`) — the Boolean binding model now explicitly selects its physical device, cleanly covering keyboard keys, gamepad buttons, and mouse buttons through one type.
+- Source-aware action callbacks: `BindAction(InputAction, Action<ContextualInputEvent>)` delivers the full `ContextualInputEvent` to the callback, and `ContextualInputEvent` now carries a `Source` (`InputKey`) identifying which mapping fired. This lets a callback bound to a single action that is driven by multiple mappings (e.g. WASD *and* mouse delta both feeding one Move action) tell the sources apart via `e.Source.InputType` / `DeviceType`. The existing value-typed overloads (`Action<bool>` / `<float>` / `<Vector2>` / `<Vector3>`) are unchanged.
 - Inspector visibility (`InputKey._ValidateProperty`) shows only the fields relevant to the selected `InputType` / `DeviceType` / `AxisDimension` (e.g. Pointer hides delta-only `Sensitivity`/`IsYAxis`; Boolean hides axis fields).
 - Test suite expanded to ~84% line coverage of the addon assembly: modifier suites (`Invert`, `Scale`, `Swizzle`, `Normalize`), trigger suites (`TriggerOnKeyUp`, `TriggerContinuous`), full `InputKey` coverage (`HandleInput` routing for every type, `Equals`/`GetHashCode`/`==` binding identity, `_ValidateProperty` visibility matrix), plus `InputAction` and `ContextualInputEvent`. `InputForgeTestExtensions` adds deterministic singleton teardown for the shared 2dog engine. Coverage is measured via `coverage.runsettings` that excludes Godot's generated marshalling code; see `InputForge.Tests/README.md#coverage`.
 - CI: `.github/workflows/tests.yml` runs the test suite with coverage on every pull request to `main` (headless Godot via 2dog, no separate Godot install). Smoke/benchmark tests are skipped in CI.

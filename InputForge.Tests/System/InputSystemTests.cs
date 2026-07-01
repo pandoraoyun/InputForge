@@ -275,4 +275,65 @@ public class InputSystemTests
             system.QueueFree();
         }
     }
+
+    [Fact]
+    public void ContextualCallback_ReceivesSource_OfTheMappingThatFired()
+    {
+        var system = CreateSystem();
+        try
+        {
+            var jump = Action("Jump");
+            var key = BooleanKey(Key.Space);
+            var ctx = Context("Gameplay", Mapping(jump, key));
+
+            ContextualInputEvent? received = null;
+            ctx.BindAction(jump, (ContextualInputEvent e) => received = e);
+
+            system.AddContext(ctx);
+            system._Input(KeyEvent(Key.Space, pressed: true));
+
+            received.Should().NotBeNull();
+            received!.Value.Source.Should().BeSameAs(key,
+                "the contextual callback should receive the exact InputKey that produced the event");
+            received.Value.Action.Should().BeSameAs(jump);
+        }
+        finally
+        {
+            system.QueueFree();
+        }
+    }
+
+    [Fact]
+    public void ContextualCallback_DistinguishesSources_WhenOneActionHasMultipleMappings()
+    {
+        var system = CreateSystem();
+        try
+        {
+            // One action, two Boolean mappings on different keys — the exact shape that
+            // a value-only callback can't disambiguate. The contextual callback must see
+            // a different Source for each, which is the whole point of the feature.
+            var move = Action("Move");
+            var keyW = BooleanKey(Key.W);
+            var keyS = BooleanKey(Key.S);
+            var ctx = Context("Gameplay", Mapping(move, keyW), Mapping(move, keyS));
+            
+          
+            var sources = new Godot.Collections.Array<InputKey>();
+            ctx.BindAction(move, (ContextualInputEvent e) => sources.Add(e.Source));
+
+            system.AddContext(ctx);
+            system._Input(KeyEvent(Key.W, pressed: true));
+            system._Input(KeyEvent(Key.S, pressed: true));
+
+            sources.Count.Should().Be(2);
+            sources[0].Should().BeSameAs(keyW,
+                "the first event should carry its own mapping's InputKey, not a shared/ambiguous one");
+            sources[1].Should().BeSameAs(keyS,
+                "the second event should carry its own mapping's InputKey, not a shared/ambiguous one");
+        }
+        finally
+        {
+            system.QueueFree();
+        }
+    }
 }

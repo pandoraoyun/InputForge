@@ -160,7 +160,7 @@ public partial class EnhancedInputSystem : Node
                 if (!mapping.EvaluateTriggers(value, @event)) continue;
 
                 contextHandledAnyInput = true;
-                context.PushAction(mapping.TargetAction, value, @event);
+                context.PushAction(mapping.TargetAction, value, @event, mapping.InputSource);
             }
 
             // Consume the event so lower-priority contexts don't process it.

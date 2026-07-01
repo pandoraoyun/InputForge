@@ -30,53 +30,97 @@ public partial class InputMappingContext : Resource
     /// </summary>
     [Signal] public delegate void PriorityChangedEventHandler(bool isTopmost);
 
+    /// <summary>
+    /// Per-action subscriber lists, one list per callback shape. Keeping each callback type in
+    /// its own list means the dispatch path (<see cref="PushAction"/>) invokes each callback
+    /// directly with no per-event type switching and no wrapper allocation — the only cost is
+    /// the lists themselves, allocated once when the first callback of a given type binds.
+    /// </summary>
+    private sealed class Subscribers
+    {
+        public List<Action<bool>> Bool;
+        public List<Action<float>> Float;
+        public List<Action<Vector2>> Vec2;
+        public List<Action<Vector3>> Vec3;
+        public List<Action<ContextualInputEvent>> Contextual;
+    }
+
     // Case-insensitive dictionary keyed by action name.
-    private readonly Dictionary<string, List<Delegate>> _actionEvents =
+    private readonly Dictionary<string, Subscribers> _actionEvents =
         new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>Subscribe to an action and receive a boolean pressed/released value.</summary>
-    public void BindAction(InputAction action, Action<bool> callback)    => Register(action, callback);
+    public void BindAction(InputAction action, Action<bool> callback)
+        => GetOrCreate(action, callback)?.Bool?.Add(callback);
 
     /// <summary>Subscribe to an action and receive a 1D axis float value (X component).</summary>
-    public void BindAction(InputAction action, Action<float> callback)   => Register(action, callback);
+    public void BindAction(InputAction action, Action<float> callback)
+        => GetOrCreate(action, callback)?.Float?.Add(callback);
 
     /// <summary>Subscribe to an action and receive a 2D axis value (XY components).</summary>
-    public void BindAction(InputAction action, Action<Vector2> callback) => Register(action, callback);
+    public void BindAction(InputAction action, Action<Vector2> callback)
+        => GetOrCreate(action, callback)?.Vec2?.Add(callback);
 
     /// <summary>Subscribe to an action and receive the full raw Vector3 value.</summary>
-    public void BindAction(InputAction action, Action<Vector3> callback) => Register(action, callback);
-
-    /// <summary>Unsubscribe a boolean callback from an action.</summary>
-    public void UnbindAction(InputAction action, Action<bool> callback)    => Unregister(action, callback);
-
-    /// <summary>Unsubscribe a float callback from an action.</summary>
-    public void UnbindAction(InputAction action, Action<float> callback)   => Unregister(action, callback);
-
-    /// <summary>Unsubscribe a Vector2 callback from an action.</summary>
-    public void UnbindAction(InputAction action, Action<Vector2> callback) => Unregister(action, callback);
-
-    /// <summary>Unsubscribe a Vector3 callback from an action.</summary>
-    public void UnbindAction(InputAction action, Action<Vector3> callback) => Unregister(action, callback);
+    public void BindAction(InputAction action, Action<Vector3> callback)
+        => GetOrCreate(action, callback)?.Vec3?.Add(callback);
 
     /// <summary>
-    /// Called by <see cref="EnhancedInputSystem"/> to deliver a processed action value
-    /// to all registered subscribers. Each callback receives the value cast to its declared type.
+    /// Subscribe to an action and receive the full <see cref="ContextualInputEvent"/>, including
+    /// <see cref="ContextualInputEvent.Source"/> — the <see cref="Mappings.InputKey"/> that fired.
+    /// Use this overload when one action is driven by multiple mappings and the callback needs
+    /// to know which physical source produced the value (e.g. WASD vs. mouse delta on one Move).
     /// </summary>
-    public void PushAction(InputAction action, Vector3 value, InputEvent @event)
+    public void BindAction(InputAction action, Action<ContextualInputEvent> callback)
+        => GetOrCreate(action, callback)?.Contextual?.Add(callback);
+
+    /// <summary>Unsubscribe a boolean callback from an action.</summary>
+    public void UnbindAction(InputAction action, Action<bool> callback)
+        => Subs(action)?.Bool?.Remove(callback);
+
+    /// <summary>Unsubscribe a float callback from an action.</summary>
+    public void UnbindAction(InputAction action, Action<float> callback)
+        => Subs(action)?.Float?.Remove(callback);
+
+    /// <summary>Unsubscribe a Vector2 callback from an action.</summary>
+    public void UnbindAction(InputAction action, Action<Vector2> callback)
+        => Subs(action)?.Vec2?.Remove(callback);
+
+    /// <summary>Unsubscribe a Vector3 callback from an action.</summary>
+    public void UnbindAction(InputAction action, Action<Vector3> callback)
+        => Subs(action)?.Vec3?.Remove(callback);
+
+    /// <summary>Unsubscribe a <see cref="ContextualInputEvent"/> callback from an action.</summary>
+    public void UnbindAction(InputAction action, Action<ContextualInputEvent> callback)
+        => Subs(action)?.Contextual?.Remove(callback);
+
+    /// <summary>
+    /// Called by <see cref="EnhancedInputSystem"/> to deliver a processed action value to all
+    /// registered subscribers. Each callback type has its own list, so this resolves the action
+    /// once and then walks each list with a plain indexed loop — no per-event type switching.
+    /// The <paramref name="source"/> is the <see cref="Mappings.InputKey"/> that produced this
+    /// event; it is forwarded to <see cref="ContextualInputEvent"/>-typed callbacks so they can
+    /// tell which mapping fired when one action is driven by several.
+    /// </summary>
+    public void PushAction(InputAction action, Vector3 value, InputEvent @event, Mappings.InputKey source = null)
     {
         if (action == null || string.IsNullOrEmpty(action.ActionName)) return;
-        if (!_actionEvents.TryGetValue(action.ActionName, out var callbacks)) return;
+        if (!_actionEvents.TryGetValue(action.ActionName, out var subs)) return;
 
-        foreach (var cb in callbacks)
+        // Each value is built once here and shared across that type's subscribers; the
+        // Invoke extension (SubscriberListExtensions.cs) is null/empty-safe, so absent
+        // callback types simply no-op.
+        subs.Bool.Invoke(value.X > 0.5f);
+        subs.Float.Invoke(value.X);
+        subs.Vec2.Invoke(new Vector2(value.X, value.Y));
+        subs.Vec3.Invoke(value);
+        subs.Contextual.Invoke(new ContextualInputEvent
         {
-            switch (cb)
-            {
-                case Action<bool>    boolCb:  boolCb(value.X > 0.5f); break;
-                case Action<float>   floatCb: floatCb(value.X); break;
-                case Action<Vector2> vec2Cb:  vec2Cb(new Vector2(value.X, value.Y)); break;
-                case Action<Vector3> vec3Cb:  vec3Cb(value); break;
-            }
-        }
+            Action = action,
+            Source = source,
+            RawEvent = @event,
+            RawValue = value,
+        });
     }
 
     /// <summary>Called by <see cref="EnhancedInputSystem"/> when this context is pushed onto the stack.</summary>
@@ -128,22 +172,38 @@ public partial class InputMappingContext : Resource
     public override int GetHashCode()
         => ContextName?.ToLowerInvariant().GetHashCode() ?? 0;
 
-    private void Register(InputAction action, Delegate callback)
+    /// <summary>Returns the subscriber bucket for an action, or null if nothing is bound to it.</summary>
+    private Subscribers Subs(InputAction action)
     {
-        if (action == null || string.IsNullOrEmpty(action.ActionName) || callback == null) return;
-
-        if (!_actionEvents.TryGetValue(action.ActionName, out var list))
-        {
-            list = new List<Delegate>();
-            _actionEvents[action.ActionName] = list;
-        }
-        list.Add(callback);
+        if (action == null || string.IsNullOrEmpty(action.ActionName)) return null;
+        return _actionEvents.TryGetValue(action.ActionName, out var subs) ? subs : null;
     }
 
-    private void Unregister(InputAction action, Delegate callback)
+    /// <summary>
+    /// Returns the subscriber bucket for an action, creating it (and the specific typed list the
+    /// caller is about to add to) on demand. Returns null if the action is invalid, so the
+    /// null-conditional Add in each BindAction overload simply no-ops. The list selected for
+    /// lazy creation is chosen by the callback's runtime type.
+    /// </summary>
+    private Subscribers GetOrCreate(InputAction action, Delegate callback)
     {
-        if (action == null || string.IsNullOrEmpty(action.ActionName) || callback == null) return;
-        if (_actionEvents.TryGetValue(action.ActionName, out var list))
-            list.Remove(callback);
+        if (action == null || string.IsNullOrEmpty(action.ActionName) || callback == null) return null;
+
+        if (!_actionEvents.TryGetValue(action.ActionName, out var subs))
+        {
+            subs = new Subscribers();
+            _actionEvents[action.ActionName] = subs;
+        }
+
+        switch (callback)
+        {
+            case Action<bool>:                  subs.Bool ??= new(); break;
+            case Action<float>:                 subs.Float ??= new(); break;
+            case Action<Vector2>:               subs.Vec2 ??= new(); break;
+            case Action<Vector3>:               subs.Vec3 ??= new(); break;
+            case Action<ContextualInputEvent>:  subs.Contextual ??= new(); break;
+        }
+
+        return subs;
     }
 }
