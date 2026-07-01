@@ -2,7 +2,13 @@
 
 All notable changes to InputForge will be documented in this file.
 
-## [Unreleased]
+## [0.2.1]
+
+### Added
+- **Multiple subscribers per action.** `InputMappingContext` now stores per-type subscriber *lists* (`Bool` / `Float` / `Vec2` / `Vec3` / `Contextual`), keyed case-insensitively by action name, so several callbacks can `BindAction` to the same action and all of them fire on dispatch. `UnbindAction` removes a single callback from its list. Each typed list is allocated lazily on the first bind of that type. Public `BindAction` / `UnbindAction` signatures are unchanged — existing single-subscriber code behaves identically; this only lifts the previous "one callback per action per type" limitation. The per-type split is a deliberate tradeoff: instead of scanning one mixed subscriber list and `switch`-ing on each delegate's `Action<>` type (a type check per subscriber plus value boxing) on *every* input push, dispatch pays at most five lazy list allocations *once* and then calls each typed list directly with the pre-computed value — trading a recurring per-event scan/boxing cost for a one-time allocation cost.
+
+### Internal
+- `SubscriberListExtensions.Invoke<T>` (`internal`) — null/empty-safe dispatch helper that walks a subscriber list with a plain indexed loop (no enumerator allocation, no per-event type switching). `PushAction` computes each value once and shares it across every subscriber of that type via `list.Invoke(value)`, replacing the repeated "null-check, count-check, for loop" block per callback type. Not part of the public API surface.
 
 ## [0.2.0]
 
