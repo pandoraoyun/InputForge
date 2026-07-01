@@ -142,6 +142,13 @@ Full tables, methodology, and caveats: [`InputForge.Tests/SMOKE_BENCH.md`](Input
 
 ---
 
+## AI Use Disclosure
+
+InputForge is human-designed and human-maintained; AI tools were used as a reviewed
+assistant for tests, docs, and tooling. See [AI_DISCLOSURE.md](AI_DISCLOSURE.md).
+
+---
+
 ## License
 
 MIT

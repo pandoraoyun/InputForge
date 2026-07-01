@@ -5,6 +5,7 @@
 # the Asset Library. Other addons/dependencies the user may have installed locally
 # are excluded — users should install those themselves.
 /**                          export-ignore
+/addons                      !export-ignore
 /addons/input_forge          !export-ignore
 /addons/input_forge/**       !export-ignore
 /addons/InputForgeDemo       !export-ignore
