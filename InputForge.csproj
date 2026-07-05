@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="addons\InputForgeDemo\LICENSE" />
+    <Content Include="addons\input_forge_demo\LICENSE" />
     <Content Include="addons\input_forge\LICENSE" />
     <Content Include="addons\input_forge\Scripts\Input\ContextualInputEvent.cs.uid" />
     <Content Include="addons\input_forge\Scripts\Input\EnhancedInputSystem.cs.uid" />

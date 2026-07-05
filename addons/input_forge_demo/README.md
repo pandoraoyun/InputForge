@@ -21,6 +21,6 @@ Open `Scenes/DemoScene.tscn` in the editor and press F6 (Run Current Scene).
 
 ## Not part of the plugin
 
-This folder (`addons/InputForgeDemo/`) is separate from `addons/input_forge/` — it is
+This folder (`addons/input_forge_demo/`) is separate from `addons/input_forge/` — it is
 not required for InputForge to function and is not enabled as a plugin itself. It's
 included for reference only. Feel free to delete it after exploring the example.

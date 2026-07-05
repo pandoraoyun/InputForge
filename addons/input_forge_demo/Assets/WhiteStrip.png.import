@@ -10,7 +10,7 @@ metadata={
 
 [deps]
 
-source_file="res://addons/InputForgeDemo/Assets/WhiteStrip.png"
+source_file="res://addons/input_forge_demo/Assets/WhiteStrip.png"
 dest_files=["res://.godot/imported/WhiteStrip.png-965cbce89d13641fea209913861b4258.ctex"]
 
 [params]

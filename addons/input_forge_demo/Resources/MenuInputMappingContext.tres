@@ -5,7 +5,7 @@
 [ext_resource type="Script" uid="uid://bt12nciw6s71k" path="res://addons/input_forge/Scripts/Input/Mappings/InputKey.cs" id="2_x8oh0"]
 [ext_resource type="Script" uid="uid://dfg33dssg5vfq" path="res://addons/input_forge/Scripts/Input/Modifiers/InputModifier.cs" id="3_hmlw6"]
 [ext_resource type="Script" uid="uid://drwm7t1mxdhi7" path="res://addons/input_forge/Scripts/Input/Triggers/InputTrigger.cs" id="4_rgipe"]
-[ext_resource type="Resource" uid="uid://b5ur0tlsv37sy" path="res://addons/InputForgeDemo/Resources/CloseMenuAction.tres" id="5_nywwx"]
+[ext_resource type="Resource" uid="uid://b5ur0tlsv37sy" path="res://addons/input_forge_demo/Resources/CloseMenuAction.tres" id="5_nywwx"]
 
 [sub_resource type="Resource" id="Resource_4ogho"]
 script = ExtResource("2_x8oh0")

@@ -5,9 +5,9 @@
 [ext_resource type="Script" uid="uid://bt12nciw6s71k" path="res://addons/input_forge/Scripts/Input/Mappings/InputKey.cs" id="2_mfphp"]
 [ext_resource type="Script" uid="uid://dfg33dssg5vfq" path="res://addons/input_forge/Scripts/Input/Modifiers/InputModifier.cs" id="2_pf7q6"]
 [ext_resource type="Script" uid="uid://drwm7t1mxdhi7" path="res://addons/input_forge/Scripts/Input/Triggers/InputTrigger.cs" id="3_ku7b6"]
-[ext_resource type="Resource" uid="uid://boqsqowdfnlms" path="res://addons/InputForgeDemo/Resources/SwithDriveMode.tres" id="5_k4p33"]
-[ext_resource type="Resource" uid="uid://bbf3k7h4wv22x" path="res://addons/InputForgeDemo/Resources/MoveAction.tres" id="6_k4p33"]
-[ext_resource type="Resource" uid="uid://bby2ogwc2he3c" path="res://addons/InputForgeDemo/Resources/MenuOpenAction.tres" id="7_18m2e"]
+[ext_resource type="Resource" uid="uid://boqsqowdfnlms" path="res://addons/input_forge_demo/Resources/SwithDriveMode.tres" id="5_k4p33"]
+[ext_resource type="Resource" uid="uid://bbf3k7h4wv22x" path="res://addons/input_forge_demo/Resources/MoveAction.tres" id="6_k4p33"]
+[ext_resource type="Resource" uid="uid://bby2ogwc2he3c" path="res://addons/input_forge_demo/Resources/MenuOpenAction.tres" id="7_18m2e"]
 
 [sub_resource type="Resource" id="Resource_mfphp"]
 script = ExtResource("2_mfphp")
