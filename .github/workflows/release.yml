@@ -1,0 +1,77 @@
+name: Release
+
+# Packages a downloadable addon ZIP and publishes a GitHub Release whenever a
+# version tag (v*) is pushed. The ZIP produced here is the same artifact you
+# upload to the Godot Asset Store, so cutting a release and preparing the store
+# upload collapse into a single action.
+#
+# Distribution note: the new Asset Store hosts the uploaded ZIP itself rather
+# than pulling from a git commit, so this workflow's output is what you hand to
+# the store. The tag is the trigger and a traceability anchor, not a download
+# source.
+#
+# No overlap with tests.yml: that workflow triggers on branch pushes and PRs to
+# main, never on tags, so pushing a tag runs only this job.
+
+on:
+  push:
+    tags:
+      - "v*"
+
+# GITHUB_TOKEN is read-only by default in this repo; creating the release and
+# uploading the asset both need write access to repository contents. Without
+# this line the gh call fails with a 403.
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Package addon + publish release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Full history so --generate-notes can diff against the previous tag.
+          fetch-depth: 0
+
+      - name: Resolve version
+        # v0.2.3 -> 0.2.3, reused by the steps below via $GITHUB_ENV.
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+
+      - name: Verify plugin.cfg version matches tag
+        # Guards against tag/plugin.cfg drift: if you tag v0.2.4 but forget to
+        # bump plugin.cfg, the release fails here instead of shipping a
+        # mislabelled asset.
+        run: |
+          CFG_VERSION=$(grep -oP 'version\s*=\s*"\K[^"]+' addons/input_forge/plugin.cfg)
+          if [ "$VERSION" != "$CFG_VERSION" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} (${VERSION}) does not match plugin.cfg version (${CFG_VERSION})"
+            exit 1
+          fi
+
+      - name: Package addon
+        # git archive (not a manual zip) so the repo's .gitattributes export-ignore
+        # rules apply and only tracked files are included — no .import / .godot
+        # junk. Passing the addons/input_forge subtree keeps its full path prefix
+        # in the ZIP, so extracting at a project root drops it straight into
+        # addons/. The bundled LICENSE.md rides along because it lives inside that
+        # folder.
+        run: |
+          git archive --format=zip \
+            --output="input_forge-${VERSION}.zip" \
+            "${GITHUB_REF_NAME}" addons/input_forge
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        # gh ships on the runner, so no third-party action is pulled in. The tag
+        # already exists (it triggered this run); gh attaches the release to it
+        # and --generate-notes builds the changelog from commits since the last
+        # tag.
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            "input_forge-${VERSION}.zip" \
+            --title "InputForge ${VERSION}" \
+            --generate-notes
