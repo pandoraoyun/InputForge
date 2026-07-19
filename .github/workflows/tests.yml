@@ -7,7 +7,7 @@ name: Tests
 # in branch protection).
 # The suite executes against a REAL headless Godot runtime embedded by the 2dog
 # NuGet package — no separate Godot install step is needed; restoring the test
-# project pulls the matching Godot 4.6 binary down with it.
+# project pulls the matching Godot 4.7.1 binary down with it.
 
 on:
   pull_request:
@@ -22,7 +22,7 @@ concurrency:
 
 jobs:
   test:
-    name: Test (.NET 9 + headless Godot)
+    name: Test (.NET 10 + headless Godot)
     runs-on: ubuntu-latest
 
     steps:
@@ -32,7 +32,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '10.0.x'
 
       # Cache the NuGet package store. Keyed on the project/lock files so the cache is
       # reused until a dependency version changes.
@@ -57,42 +57,21 @@ jobs:
       # Smoke/benchmark tests ([Trait("Category","Smoke")]) are skipped here: they log
       # timings rather than asserting, and CI runners have variable hardware that makes
       # their numbers meaningless. Run them locally with --filter "Category=Smoke".
-      - name: Test (with coverage)
+      - name: Test
         run: >
           xvfb-run --auto-servernum
           dotnet test InputForge.Tests/InputForge.Tests.csproj
           --configuration Debug
           --no-build
           --filter "Category!=Smoke"
-          --settings InputForge.Tests/coverage.runsettings
-          --collect:"XPlat Code Coverage"
           --logger "trx;LogFileName=test-results.trx"
           --results-directory ./TestResults
 
-      # Human-readable coverage summary in the job log + PR step summary.
-      - name: Coverage summary
-        if: always()
-        run: |
-          dotnet tool install --global dotnet-reportgenerator-globaltool
-          export PATH="$PATH:$HOME/.dotnet/tools"
-          reportgenerator \
-            -reports:"TestResults/**/coverage.cobertura.xml" \
-            -targetdir:"TestResults/coveragereport" \
-            "-reporttypes:TextSummary;MarkdownSummaryGithub"
-          {
-            echo "## Coverage"
-            cat TestResults/coveragereport/SummaryGithub.md 2>/dev/null \
-              || cat TestResults/coveragereport/Summary.txt
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      # Keep the raw results (trx + cobertura + html) as a downloadable artifact.
+      # Keep the raw trx results as a downloadable artifact.
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: |
-            TestResults/**/coverage.cobertura.xml
-            TestResults/**/*.trx
-            TestResults/coveragereport/**
+          path: TestResults/**/*.trx
           retention-days: 14
