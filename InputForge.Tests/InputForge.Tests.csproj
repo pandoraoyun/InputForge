@@ -2,6 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <!-- xUnit v3 (pulled in by 2dog.xunit 4.7.1) test projects are stand-alone executables:
+         they must produce an app host, so OutputType MUST be Exe. -->
+    <OutputType>Exe</OutputType>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
@@ -43,9 +46,6 @@
        plugin's Godot.NET.Sdk line, so the stub is no longer needed. -->
   <ItemGroup>
     <ProjectReference Include="../InputForge.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="TestResults\" />
   </ItemGroup>
 
 </Project>
