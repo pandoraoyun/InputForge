@@ -285,7 +285,7 @@ public class ContextStackSignalsTests
             var gameplay = Context("Gameplay");
             bool? isTopmost = null;
             gameplay.Connect(InputMappingContext.SignalName.PriorityChanged,
-                Callable.From((bool top) => isTopmost = top));
+                Callable.From((bool top) => { isTopmost = top; }));
 
             system.AddContext(gameplay);
 
@@ -309,7 +309,7 @@ public class ContextStackSignalsTests
 
             bool? isTopmost = null;
             gameplay.Connect(InputMappingContext.SignalName.PriorityChanged,
-                Callable.From((bool top) => isTopmost = top));
+                Callable.From((bool top) => { isTopmost = top; }));
 
             system.AddContext(menu); // gameplay is displaced from the top
 

@@ -50,28 +50,19 @@ jobs:
       - name: Build
         run: dotnet build InputForge.Tests/InputForge.Tests.csproj --configuration Debug --no-restore
 
-      # 2dog boots Godot headless with the dummy rendering/audio drivers (set in
-      # InputForgeTestFixture), so no real display is required. xvfb-run is kept as a
-      # belt-and-braces wrapper in case any Godot subsystem still probes for X11 on init.
+      # The tests run through Microsoft Testing Platform (xUnit v3's self-hosting runner), NOT the
+      # VSTest adapter: VSTest's out-of-process launcher (vstest.console reading JSON over stdout)
+      # breaks on .NET 10 + 2dog/Godot ("Test process did not return valid JSON"). `dotnet run`
+      # launches the test executable directly, sidestepping it — the process exit code gates the job.
       #
-      # Smoke/benchmark tests ([Trait("Category","Smoke")]) are skipped here: they log
-      # timings rather than asserting, and CI runners have variable hardware that makes
-      # their numbers meaningless. Run them locally with --filter "Category=Smoke".
+      # 2dog boots Godot headless with the dummy rendering/audio drivers (set in
+      # InputForgeTestFixture), so no real display is required; xvfb-run is a belt-and-braces wrapper
+      # in case a Godot subsystem still probes for X11 on init. Smoke/benchmark tests
+      # ([Trait("Category","Smoke")]) run too, but they only log timings (no asserts), so they don't
+      # gate CI — their numbers are meaningless on variable CI hardware anyway.
       - name: Test
         run: >
           xvfb-run --auto-servernum
-          dotnet test InputForge.Tests/InputForge.Tests.csproj
+          dotnet run --project InputForge.Tests/InputForge.Tests.csproj
           --configuration Debug
           --no-build
-          --filter "Category!=Smoke"
-          --logger "trx;LogFileName=test-results.trx"
-          --results-directory ./TestResults
-
-      # Keep the raw trx results as a downloadable artifact.
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: TestResults/**/*.trx
-          retention-days: 14
