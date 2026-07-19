@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dyue8kghscdkj"
-path="res://.godot/imported/WhiteStrip.png-965cbce89d13641fea209913861b4258.ctex"
+path="res://.godot/imported/WhiteStrip.png-5c8c254b7e85445a0a6d8f860647a20b.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://addons/input_forge_demo/Assets/WhiteStrip.png"
-dest_files=["res://.godot/imported/WhiteStrip.png-965cbce89d13641fea209913861b4258.ctex"]
+dest_files=["res://.godot/imported/WhiteStrip.png-5c8c254b7e85445a0a6d8f860647a20b.ctex"]
 
 [params]
 

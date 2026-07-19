@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b2j3vxl8jfhm3"
-path="res://.godot/imported/16x32 Run-Sheet.png-8abc6d764cf276e431685a24e0f8bee4.ctex"
+path="res://.godot/imported/16x32 Run-Sheet.png-080be8b8dd3c7bb5e1318dfe3f13c589.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://addons/input_forge_demo/Assets/16x32 Run-Sheet.png"
-dest_files=["res://.godot/imported/16x32 Run-Sheet.png-8abc6d764cf276e431685a24e0f8bee4.ctex"]
+dest_files=["res://.godot/imported/16x32 Run-Sheet.png-080be8b8dd3c7bb5e1318dfe3f13c589.ctex"]
 
 [params]
 

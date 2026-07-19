@@ -1,0 +1,40 @@
+<Project Sdk="Godot.NET.Sdk/4.7.0">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework Condition=" '$(GodotTargetPlatform)' == 'android' ">net9.0</TargetFramework>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+  </PropertyGroup>
+
+  <!-- Exclude test project from plugin assembly -->
+  <ItemGroup>
+    <Compile Remove="InputForge.Tests\**" />
+    <Content Remove="InputForge.Tests\**" />
+    <EmbeddedResource Remove="InputForge.Tests\**" />
+    <None Remove="InputForge.Tests\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="addons\input_forge_demo\LICENSE" />
+    <Content Include="addons\input_forge\LICENSE" />
+    <Content Include="addons\input_forge\Scripts\Input\ContextualInputEvent.cs.uid" />
+    <Content Include="addons\input_forge\Scripts\Input\EnhancedInputSystem.cs.uid" />
+    <Content Include="addons\input_forge\Scripts\Input\Enum\AxisDimension.cs.uid" />
+    <Content Include="addons\input_forge\Scripts\Input\Enum\InputDeviceType.cs.uid" />
+    <Content Include="addons\input_forge\Scripts\Input\Enum\InputType.cs.uid" />
+    <Content Include="addons\input_forge\Scripts\Input\InputAction.cs.uid" />
+    <Content Include="addons\input_forge\Scripts\Input\InputMapping.cs.uid" />
+    <Content Include="addons\input_forge\Scripts\Input\InputMappingContext.cs.uid" />
+    <Content Include="addons\input_forge\Scripts\Input\Mappings\InputKey.cs.uid" />
+    <Content Include="addons\input_forge\Scripts\Input\Modifiers\DeadzoneModifier.cs.uid" />
+    <Content Include="addons\input_forge\Scripts\Input\Modifiers\InputModifier.cs.uid" />
+    <Content Include="addons\input_forge\Scripts\Input\Modifiers\InvertModifier.cs.uid" />
+    <Content Include="addons\input_forge\Scripts\Input\Modifiers\NormalizeModifier.cs.uid" />
+    <Content Include="addons\input_forge\Scripts\Input\Modifiers\ScaleModifier.cs.uid" />
+    <Content Include="addons\input_forge\Scripts\Input\Modifiers\SwizzleModifier.cs.uid" />
+    <Content Include="addons\input_forge\Scripts\Input\Triggers\InputTrigger.cs.uid" />
+    <Content Include="addons\input_forge\Scripts\Input\Triggers\TriggerContinuous.cs.uid" />
+    <Content Include="addons\input_forge\Scripts\Input\Triggers\TriggerOnChange.cs.uid" />
+    <Content Include="addons\input_forge\Scripts\Input\Triggers\TriggerOnKeyDown.cs.uid" />
+    <Content Include="addons\input_forge\Scripts\Input\Triggers\TriggerOnKeyUp.cs.uid" />
+  </ItemGroup>
+</Project>

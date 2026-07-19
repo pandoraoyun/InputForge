@@ -4,8 +4,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InputForge", "InputForge.cs
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InputForge.Tests", "InputForge.Tests\InputForge.Tests.csproj", "{4DB19BA9-2F14-49D6-B72F-BE15BE47275B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InputForge.Stub", "InputForge.Tests\TestProject\InputForge.Stub.csproj", "{B2585F34-E1E4-4EFB-8D79-FE04E889F70A}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 	Debug|Any CPU = Debug|Any CPU
@@ -25,11 +23,5 @@ Global
 		{4DB19BA9-2F14-49D6-B72F-BE15BE47275B}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
 		{4DB19BA9-2F14-49D6-B72F-BE15BE47275B}.ExportRelease|Any CPU.ActiveCfg = Debug|Any CPU
 		{4DB19BA9-2F14-49D6-B72F-BE15BE47275B}.ExportRelease|Any CPU.Build.0 = Debug|Any CPU
-		{B2585F34-E1E4-4EFB-8D79-FE04E889F70A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B2585F34-E1E4-4EFB-8D79-FE04E889F70A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B2585F34-E1E4-4EFB-8D79-FE04E889F70A}.ExportDebug|Any CPU.ActiveCfg = ExportDebug|Any CPU
-		{B2585F34-E1E4-4EFB-8D79-FE04E889F70A}.ExportDebug|Any CPU.Build.0 = ExportDebug|Any CPU
-		{B2585F34-E1E4-4EFB-8D79-FE04E889F70A}.ExportRelease|Any CPU.ActiveCfg = ExportRelease|Any CPU
-		{B2585F34-E1E4-4EFB-8D79-FE04E889F70A}.ExportRelease|Any CPU.Build.0 = ExportRelease|Any CPU
 	EndGlobalSection
 EndGlobal

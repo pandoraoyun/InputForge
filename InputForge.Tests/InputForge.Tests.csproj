@@ -1,22 +1,29 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
-    <GodotProjectDir>./TestProject</GodotProjectDir>
+    <!-- Test against the REAL Godot project at the repo root. -->
+    <GodotProjectDir>..</GodotProjectDir>
+
+    <!-- Run via Microsoft Testing Platform (xUnit v3's self-hosting runner) instead of the VSTest
+         adapter. The VSTest path (dotnet test → VSTestTask → vstest.console → xUnit v3's
+         out-of-process TestProcessLauncherAdapter, which reads JSON over stdout) breaks here on
+         SDK 10.0.100 + 2dog/Godot ("Test process did not return valid JSON"). MTP runs the test EXE
+         directly, sidestepping that launcher. xUnit v3 test projects are stand-alone executables:
+         the xunit.v3 package supplies the generated Main / MTP entry point (2dog.xunit alone does
+         not), and OutputType must be Exe. -->
+    <OutputType>Exe</OutputType>
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="2dog" Version="0.1.23-pre" />
-    <PackageReference Include="2dog.xunit" Version="0.1.23-pre" />
-    <PackageReference Include="coverlet.collector" Version="10.0.1">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.*" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="3.*" />
+    <PackageReference Include="xunit.v3" Version="3.*" />
+    <PackageReference Include="2dog.engine" Version="4.7.1.*" />
+    <PackageReference Include="2dog.xunit" Version="4.7.1.*" />
     <PackageReference Include="FluentAssertions" Version="6.*" />
   </ItemGroup>
 
@@ -37,8 +44,10 @@
     </ItemGroup>
   </Target>
 
+  <!-- Reference the real plugin directly (the old ./TestProject/InputForge.Stub.csproj was a Godot 4.6
+       bridge; 2dog now embeds 4.7.1, so the stub is gone). -->
   <ItemGroup>
-    <ProjectReference Include="./TestProject/InputForge.Stub.csproj" />
+    <ProjectReference Include="../InputForge.csproj" />
   </ItemGroup>
 
 </Project>

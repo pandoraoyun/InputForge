@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c7sd23mt5r2g7"
-path="res://.godot/imported/16x32 Idle-Sheet.png-1ef180ae5d8067c92dd466ab60996894.ctex"
+path="res://.godot/imported/16x32 Idle-Sheet.png-7d7873ceb25ad2d6bda3c18b8641abae.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://addons/input_forge_demo/Assets/16x32 Idle-Sheet.png"
-dest_files=["res://.godot/imported/16x32 Idle-Sheet.png-1ef180ae5d8067c92dd466ab60996894.ctex"]
+dest_files=["res://.godot/imported/16x32 Idle-Sheet.png-7d7873ceb25ad2d6bda3c18b8641abae.ctex"]
 
 [params]
 

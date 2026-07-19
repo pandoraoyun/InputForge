@@ -10,9 +10,12 @@
   To run everything including smoke tests (ignore this default exclusion):
     dotnet test --filter "Category!=DoesNotExist"
   (the explicit --filter overrides this file's TestCaseFilter)
+  
+  
+  <RunSettings>
+    <RunConfiguration>
+      <TestCaseFilter>Category!=Smoke</TestCaseFilter>
+    </RunConfiguration>
+  </RunSettings>
+
 -->
-<RunSettings>
-  <RunConfiguration>
-    <TestCaseFilter>Category!=Smoke</TestCaseFilter>
-  </RunConfiguration>
-</RunSettings>
